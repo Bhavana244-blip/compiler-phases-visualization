@@ -851,4 +851,6 @@ function compileFull(src) {
   };
 }
 
-module.exports = { compileFull, lex, parse: (toks) => new Parser(toks).parse() };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { compileFull, lex, parse: (toks) => new Parser(toks).parse() };
+}

@@ -6,6 +6,7 @@
 <title>6-Phase Compiler Visualization</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <link href="styles.css" rel="stylesheet">
+<script src="compiler.js"></script>
 </head>
 <body>
 
@@ -220,28 +221,29 @@ function showPhase(num) {
 
 async function compileAndFetch() {
   const code = document.getElementById('code').value;
-  const res = await fetch('/compile', {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({code})
-  });
-  const data = await res.json();
-  currentData = data;
-  renderData();
-  
-  const errLog = document.getElementById('error-log');
-  const errContent = document.getElementById('error-content');
-  if (data.errors && data.errors.length > 0 || (data.semanticErrors && data.semanticErrors.length > 0)) {
-    errLog.classList.add('has-errors');
-    let h = '';
-    if (data.errors && data.errors.length) data.errors.forEach(e => {
-        h += `<div class="err-item"><div class="err-phase">Phase 1/2 Fatal Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg||e.message||e}</div></div>`;
-    });
-    if (data.semanticErrors) data.semanticErrors.forEach(e => {
-      h += `<div class="err-item"><div class="err-phase">Phase 3 Semantic Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg}</div></div>`;
-    });
-    errContent.innerHTML = h;
-  } else {
-    errLog.classList.remove('has-errors');
-    errContent.innerHTML = '';
+  try {
+    const data = window.compileFull ? window.compileFull(code) : compileFull(code);
+    currentData = data;
+    renderData();
+    
+    const errLog = document.getElementById('error-log');
+    const errContent = document.getElementById('error-content');
+    if (data.errors && data.errors.length > 0 || (data.semanticErrors && data.semanticErrors.length > 0)) {
+      errLog.classList.add('has-errors');
+      let h = '';
+      if (data.errors && data.errors.length) data.errors.forEach(e => {
+          h += `<div class="err-item"><div class="err-phase">Phase 1/2 Fatal Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg||e.message||e}</div></div>`;
+      });
+      if (data.semanticErrors) data.semanticErrors.forEach(e => {
+        h += `<div class="err-item"><div class="err-phase">Phase 3 Semantic Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg}</div></div>`;
+      });
+      errContent.innerHTML = h;
+    } else {
+      errLog.classList.remove('has-errors');
+      errContent.innerHTML = '';
+    }
+  } catch (err) {
+    console.error("Compilation error:", err);
   }
 }
 
