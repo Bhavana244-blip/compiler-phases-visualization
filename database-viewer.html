@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supabase-style Database Viewer</title>
+<link href="styles.css" rel="stylesheet">
+<style>
+  body { background: #1c1c1c; color: #ededed; font-family: 'Inter', system-ui, sans-serif; display: flex; height: 100vh; overflow: hidden; margin: 0; }
+  
+  /* Supabase Green Theme overrides */
+  :root {
+    --brand: #24b47e;
+    --brand-hover: #1f9d6c;
+    --bg-dark: #121212;
+    --bg-surface: #1c1c1c;
+    --bg-surface-hover: #2a2a2a;
+    --border: #333333;
+    --text-muted: #8b8b8b;
+  }
+
+  /* SIDEBAR */
+  .sidebar { width: 260px; background: var(--bg-dark); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .logo-area { height: 60px; padding: 0 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 14px; letter-spacing: 0.5px; color: #fff; }
+  .logo-icon { width: 28px; height: 28px; background: var(--brand); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+  .nav-group { padding: 16px 10px; }
+  .nav-item { padding: 8px 12px; border-radius: 6px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+  .nav-item:hover { color: #fff; background: var(--bg-surface-hover); }
+  .nav-item.active { color: #fff; background: rgba(36, 180, 126, 0.1); }
+  .nav-item.active::before { content: ''; width: 3px; height: 16px; background: var(--brand); position: absolute; left: 10px; border-radius: 2px; }
+
+  /* MAIN AREA */
+  .main { flex: 1; display: flex; flex-direction: column; background: var(--bg-surface); }
+  .top-bar { height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .breadcrumbs { font-size: 13px; color: var(--text-muted); }
+  .breadcrumbs span { color: #fff; font-weight: 500; }
+  
+  .toolbar { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center; }
+  .btn { background: var(--bg-surface-hover); border: 1px solid var(--border); color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: #333; }
+  .btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .btn-primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+  
+  /* DATA GRID */
+  .grid-container { flex: 1; overflow: auto; position: relative; }
+  .data-grid { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+  .data-grid th { background: var(--bg-dark); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+  .data-grid td { padding: 10px 16px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); color: #ccc; white-space: nowrap; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+  .data-grid tbody tr:hover { background: var(--bg-surface-hover); }
+  .data-grid td.type-json { color: #a78bfa; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(167, 139, 250, 0.3); text-underline-offset: 3px; }
+  
+  .id-col { color: var(--brand) !important; font-weight: bold; width: 60px; }
+  
+  .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); }
+  .empty-state svg { width: 48px; height: 48px; opacity: 0.5; margin-bottom: 16px; }
+
+  /* JSON MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; width: 600px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; }
+  .modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 20px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a78bfa; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">⬡</div>
+    Supabase DB
+  </div>
+  <div class="nav-group">
+    <div class="nav-item active">Table Editor</div>
+    <div class="nav-item">SQL Editor</div>
+    <div class="nav-item" onclick="window.location.href='index.html'">← Back to Compiler</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="top-bar">
+    <div class="breadcrumbs">
+      CompilerViz / <span>history</span>
+    </div>
+  </div>
+  
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="loadEntries()">↻ Refresh Data</button>
+    <button class="btn" onclick="clearAll()" style="color:#ff6b6b; border-color: rgba(255,107,107,0.3)">🗑 Clear Table</button>
+    <span style="margin-left:auto; font-size:12px; color:var(--text-muted)"><span id="row-count">0</span> rows selected</span>
+  </div>
+
+  <div class="grid-container">
+    <table class="data-grid">
+      <thead>
+        <tr>
+          <th width="40"><input type="checkbox" disabled></th>
+          <th width="80">id</th>
+          <th width="180">created_at</th>
+          <th>input (jsonb)</th>
+          <th>output (jsonb)</th>
+          <th width="100">Action</th>
+        </tr>
+      </thead>
+      <tbody id="grid-body">
+        <!-- Rendered via JS -->
+      </tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+      <div>No rows found in 'history'</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="json-modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modal-title">JSON Data</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api/history';
+
+async function loadEntries() {
+  try {
+    const res = await fetch(API);
+    const items = await res.json();
+    renderGrid(items);
+  } catch (e) {
+    document.getElementById('grid-body').innerHTML = '';
+    document.getElementById('empty-state').style.display = 'flex';
+  }
+}
+
+function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function renderGrid(items) {
+  const tbody = document.getElementById('grid-body');
+  document.getElementById('row-count').textContent = items.length;
+  
+  if (!items.length) {
+    tbody.innerHTML = '';
+    document.getElementById('empty-state').style.display = 'flex';
+    return;
+  }
+  
+  document.getElementById('empty-state').style.display = 'none';
+  
+  tbody.innerHTML = items.map(item => {
+    const d = new Date(item.timestamp);
+    const timeStr = d.toISOString().replace('T', ' ').substring(0, 19) + '+00';
+    
+    const inpJSON = JSON.stringify(item.input);
+    const outJSON = JSON.stringify(item.output);
+    
+    return `<tr>
+      <td style="text-align:center"><input type="checkbox"></td>
+      <td class="id-col">${item.id}</td>
+      <td style="color:var(--text-muted)">${timeStr}</td>
+      <td class="type-json" onclick='showJson("Input", ${esc(inpJSON)})'>${esc(inpJSON)}</td>
+      <td class="type-json" onclick='showJson("Output", ${esc(outJSON)})'>${esc(outJSON)}</td>
+      <td><button class="btn" style="padding:2px 8px;font-size:11px" onclick="deleteEntry(${item.id})">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function showJson(title, data) {
+  document.getElementById('modal-title').textContent = title + ' JSON';
+  document.getElementById('modal-content').textContent = JSON.stringify(data, null, 2);
+  document.getElementById('json-modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('json-modal').style.display = 'none';
+}
+
+async function deleteEntry(id) { 
+  if(confirm('Delete row?')) {
+    await fetch(`${API}/${id}`, { method: 'DELETE' }); 
+    loadEntries(); 
+  }
+}
+
+async function clearAll() { 
+  if (confirm('Truncate table history?')) { 
+    await fetch(API, { method: 'DELETE' }); 
+    loadEntries(); 
+  } 
+}
+
+loadEntries();
+</script>
+</body>
+</html>

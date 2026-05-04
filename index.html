@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6-Phase Compiler Visualization</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link href="styles.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    <div class="logo-text">
+      <h1>CompilerViz</h1>
+      <span>6-Phase C Compiler</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Compiler Pipeline</a>
+    <a href="compiler-viz.html" class="nav-link">Syntax Analyzer</a>
+    <a href="database-viewer.html" class="nav-link">Database</a>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="stepPhase()">⏭ Next Phase</button>
+    <button class="btn btn-run" onclick="runAll()">▶ Run All Phases</button>
+  </div>
+</div>
+
+<div class="pipeline-wrap">
+  <div class="pipeline">
+    <div class="pipe-track"></div>
+    <div class="pipe-fill" id="pipe-flow"></div>
+    
+    <div class="phase active" id="node-1" onclick="showPhase(1)">
+      <div class="phase-dot">1</div><div class="phase-label">Lexical</div>
+    </div>
+    <div class="phase" id="node-2" onclick="showPhase(2)">
+      <div class="phase-dot">2</div><div class="phase-label">Syntax</div>
+    </div>
+    <div class="phase" id="node-3" onclick="showPhase(3)">
+      <div class="phase-dot">3</div><div class="phase-label">Semantic</div>
+    </div>
+    <div class="phase" id="node-4" onclick="showPhase(4)">
+      <div class="phase-dot">4</div><div class="phase-label">ICG</div>
+    </div>
+    <div class="phase" id="node-5" onclick="showPhase(5)">
+      <div class="phase-dot">5</div><div class="phase-label">Optimization</div>
+    </div>
+    <div class="phase" id="node-6" onclick="showPhase(6)">
+      <div class="phase-dot">6</div><div class="phase-label">Assembly</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Sidebar Editor -->
+  <div class="sidebar">
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <h3>Source Code</h3>
+      </div>
+      <div class="editor-container">
+        <div class="lines" id="line-numbers">1</div>
+        <textarea id="code" spellcheck="false" oninput="updateLines()" onscroll="syncScroll()">int main() {
+    int i, j, n = 5;
+    for(i = 1; i <= n; i++) {
+        for(j = 1; j <= n; j++) {
+            if(i == 1 || i == n || j == 1 || j == n)
+                printf("* ");
+            else
+                printf("  ");
+        }
+        printf("\n");
+    }
+    return 0;
+}</textarea>
+      </div>
+      <div class="chips">
+        <div class="chip" onclick="loadSample('square')">Hollow Square</div>
+        <div class="chip" onclick="loadSample('fact')">Factorial</div>
+        <div class="chip" onclick="loadSample('fibo')">Fibonacci</div>
+        <div class="chip" onclick="loadSample('sort')">Bubble Sort</div>
+        <div class="chip" onclick="loadSample('palindrome')">Palindrome</div>
+        <div class="chip" onclick="loadSample('error')">Type Error Demo</div>
+      </div>
+    </div>
+    
+    <div class="error-log" id="error-log">
+      <div id="error-content"></div>
+    </div>
+  </div>
+
+  <!-- Content Views -->
+  <div class="content">
+    
+    <!-- Phase 1: Lexical -->
+    <div class="view-panel active" id="view-1">
+      <div class="panel-title">
+        <div class="title-icon" style="background:var(--accent-glow);color:var(--accent2)">🔤</div>
+        Token Stream
+      </div>
+      <table class="data-table">
+        <thead><tr><th width="50">#</th><th>Lexeme</th><th width="150">Token Type</th><th width="100">Line</th></tr></thead>
+        <tbody id="token-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Phase 2: Syntax -->
+    <div class="view-panel" id="view-2">
+      <svg id="ast-svg"></svg>
+      <div class="ast-toolbar">
+        <h4>Parser Walkthrough</h4>
+        <div style="display:flex;gap:5px;margin-top:10px">
+          <button class="btn btn-ghost" style="flex:1" onclick="astPrev()">◀ Prev</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="astNext()">Next ▶</button>
+          <button class="btn btn-primary" style="flex:1" onclick="astPlay()" id="ast-play">▶ Play</button>
+        </div>
+        <div id="ast-step-desc" style="font-size:11px; color:var(--text2); margin-top:10px; line-height:1.5;"></div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Semantic -->
+    <div class="view-panel" id="view-3">
+      <div class="panel-title">
+        <div class="title-icon" style="background:var(--green-bg);color:var(--green)">🏷</div>
+        Symbol Table & Semantic Analysis
+      </div>
+      <div class="stats" id="sem-stats"></div>
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Entity Type</th><th>Data Type</th><th>Scope Level</th></tr></thead>
+        <tbody id="sym-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Phase 4: ICG -->
+    <div class="view-panel" id="view-4">
+      <div class="panel-title">
+        <div class="title-icon" style="background:rgba(255,120,73,.15);color:var(--terracotta)">⚙</div>
+        Three-Address Code (TAC)
+      </div>
+      <div class="code-box" id="tac-body"></div>
+    </div>
+
+    <!-- Phase 5: Optimization -->
+    <div class="view-panel" id="view-5">
+      <div class="panel-title">
+        <div class="title-icon" style="background:rgba(255,217,61,.15);color:var(--amber)">⚡</div>
+        Code Optimization
+      </div>
+      <div class="stats" id="opt-stats"></div>
+      <div class="diff-container">
+        <div class="diff-half">
+          <h3>Before</h3>
+          <div class="code-box" id="opt-before"></div>
+        </div>
+        <div class="diff-half">
+          <h3 style="color:var(--green)">After (Constant Folding & DCE)</h3>
+          <div class="code-box" id="opt-after"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 6: Assembly -->
+    <div class="view-panel" id="view-6">
+      <div class="panel-title">
+        <div class="title-icon" style="background:rgba(100,210,255,.15);color:var(--cyan)">🖥</div>
+        Target Generation (x86 Assembly)
+      </div>
+      <div class="code-box" style="padding:15px 30px">
+        <div id="asm-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentData = null;
+let activePhase = 1;
+let animTimeout = null;
+
+const samples = {
+  square: `int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf("* ");\n            else\n                printf("  ");\n        }\n        printf("\\n");\n    }\n    return 0;\n}`,
+  fact: `int factorial(int n) {\n  if (n <= 1) return 1;\n  return n * factorial(n - 1);\n}`,
+  fibo: `int fib(int n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}`,
+  sort: `void bubbleSort(int arr[], int n) {\n  int i, j, temp;\n  for (i = 0; i < n-1; i++) {\n    for (j = 0; j < n-i-1; j++) {\n      if (arr[j] > arr[j+1]) {\n        temp = arr[j];\n        arr[j] = arr[j+1];\n        arr[j+1] = temp;\n      }\n    }\n  }\n}`,
+  palindrome: `#include <stdio.h>\nint main() {\n    int num = 121, temp, rev = 0, digit;\n    temp = num;\n    while(num != 0) {\n        digit = num % 10;\n        rev = rev * 10 + digit;\n        num = num / 10;\n    }\n    if(temp == rev)\n        printf("Palindrome\\n");\n    else\n        printf("Not Palindrome\\n");\n    return 0;\n}`,
+  error: `int main() {\n  int x = 10;\n  float y = 5.5;\n  x = y; // Type mismatch\n  z = 10; // Undeclared\n  int x = 20; // Redeclaration\n}`
+};
+
+function loadSample(k) { document.getElementById('code').value = samples[k]; updateLines(); }
+
+function updateLines() {
+  const ta = document.getElementById('code');
+  const lines = ta.value.split('\n').length;
+  document.getElementById('line-numbers').innerHTML = Array.from({length: Math.max(lines, 1)}, (_, i) => i + 1).join('<br>');
+}
+function syncScroll() {
+  const ta = document.getElementById('code');
+  document.getElementById('line-numbers').style.transform = `translateY(-${ta.scrollTop}px)`;
+}
+updateLines();
+
+function showPhase(num) {
+  activePhase = num;
+  document.querySelectorAll('.phase').forEach((n, i) => {
+    n.classList.remove('active', 'done');
+    if (i + 1 < num) n.classList.add('done');
+    if (i + 1 === num) n.classList.add('active');
+  });
+  document.getElementById('pipe-flow').style.width = ((num - 1) * 20) + '%';
+  
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`view-${num}`).classList.add('active');
+  
+  if (num === 2 && currentData && currentData.ast) renderTree(currentData.ast);
+}
+
+async function compileAndFetch() {
+  const code = document.getElementById('code').value;
+  const res = await fetch('/compile', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({code})
+  });
+  const data = await res.json();
+  currentData = data;
+  renderData();
+  
+  const errLog = document.getElementById('error-log');
+  const errContent = document.getElementById('error-content');
+  if (data.errors && data.errors.length > 0 || (data.semanticErrors && data.semanticErrors.length > 0)) {
+    errLog.classList.add('has-errors');
+    let h = '';
+    if (data.errors && data.errors.length) data.errors.forEach(e => {
+        h += `<div class="err-item"><div class="err-phase">Phase 1/2 Fatal Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg||e.message||e}</div></div>`;
+    });
+    if (data.semanticErrors) data.semanticErrors.forEach(e => {
+      h += `<div class="err-item"><div class="err-phase">Phase 3 Semantic Error</div><div class="err-msg">Line ${e.line||1}: ${e.msg}</div></div>`;
+    });
+    errContent.innerHTML = h;
+  } else {
+    errLog.classList.remove('has-errors');
+    errContent.innerHTML = '';
+  }
+}
+
+function getBadge(type) {
+  if (type === 'KEYWORD') return 'b-kw';
+  if (type === 'IDENT') return 'b-id';
+  if (['NUMBER','FLOAT_LITERAL'].includes(type)) return 'b-lit';
+  if (['STRING','CHAR'].includes(type)) return 'b-str';
+  if (type === 'OP') return 'b-op';
+  if (type === 'DELIMITER') return 'b-del';
+  if (type === 'PREPROCESSOR') return 'b-pre';
+  return '';
+}
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function highlightCode(line, col, len) {
+  const code = document.getElementById('code').value;
+  const lines = code.split('\n');
+  let pos = 0;
+  for(let i=0; i<Math.min((line||1)-1, lines.length); i++) pos += lines[i].length + 1;
+  pos += ((col||1) - 1);
+  const ta = document.getElementById('code');
+  ta.focus();
+  ta.setSelectionRange(pos, pos + len);
+}
+
+function renderData() {
+  if (!currentData) return;
+  const d = currentData;
+  
+  // 1. Tokens
+  if (d.tokens) {
+    document.getElementById('token-body').innerHTML = d.tokens.filter(t=>t.type!=='EOF').map((t,i) => `
+      <tr style="cursor:pointer;" onclick="highlightCode(${t.line}, ${t.col}, ${t.value.length})">
+        <td style="color:var(--text3)">${i+1}</td>
+        <td style="font-family:'JetBrains Mono';font-weight:bold;">${escapeHtml(t.value)}</td>
+        <td><span class="badge ${getBadge(t.type)}">${t.type}</span></td>
+        <td style="color:var(--text3)">Line ${t.line}</td>
+      </tr>
+    `).join('');
+  }
+  
+  // 3. Semantic
+  if (d.symbolTable) {
+    document.getElementById('sym-body').innerHTML = d.symbolTable.map(s => `
+      <tr style="cursor:pointer;" onclick="highlightCode(${s.line || 1}, 1, ${s.name.length})">
+        <td style="font-family:'JetBrains Mono';font-weight:bold;color:var(--green)">${escapeHtml(s.name)}</td>
+        <td>${s.entityType}</td>
+        <td style="color:var(--accent2);font-family:'JetBrains Mono'">${s.dataType||'-'}</td>
+        <td style="color:var(--text3)">${s.scope}</td>
+      </tr>
+    `).join('');
+    
+    document.getElementById('sem-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-val">${d.symbolTable.length}</div><div class="stat-lbl">Symbols Tracked</div></div>
+      <div class="stat-box"><div class="stat-val ${d.semanticErrors.length>0?'error':''}">${d.semanticErrors.length}</div><div class="stat-lbl">Semantic Errors</div></div>
+    `;
+  }
+  
+  // 4. TAC
+  if (d.tac) {
+    document.getElementById('tac-body').innerHTML = d.tac.map(t => escapeHtml(t)).join('\n');
+  }
+  
+  // 5. Opt
+  if (d.optResult && d.optResult.optTac) {
+    let b = '', a = '';
+    d.optResult.optTac.forEach(t => {
+      if (t.type === 'folded') {
+        b += `<div class="line-removed">${escapeHtml(t.old)}</div>`;
+        a += `<div class="line-added">${escapeHtml(t.new)}  <span style="color:var(--text3);font-size:0.8em">// Folded ${t.varOpt}</span></div>`;
+      } else if (t.type === 'eliminated') {
+        b += `<div class="line-removed">${escapeHtml(t.old)}</div>`;
+        a += `<div><span style="color:var(--text3);font-style:italic;">${escapeHtml(t.new)}</span></div>`;
+      } else {
+        b += `<div>${escapeHtml(t.old)}</div>`;
+        a += `<div>${escapeHtml(t.new)}</div>`;
+      }
+    });
+    document.getElementById('opt-before').innerHTML = b;
+    document.getElementById('opt-after').innerHTML = a;
+    
+    document.getElementById('opt-stats').innerHTML = `
+      <div class="stat-box"><div class="stat-val">${d.optResult.stats.folded}</div><div class="stat-lbl">Constants Folded</div></div>
+      <div class="stat-box"><div class="stat-val">${d.optResult.stats.elim}</div><div class="stat-lbl">Dead Code Eliminated</div></div>
+    `;
+  }
+  
+  // 6. ASM
+  if (d.assembly) {
+    document.getElementById('asm-body').innerHTML = d.assembly.map(a => {
+      if (typeof a === 'string') return `<div class="asm-label">${escapeHtml(a)}</div>`;
+      if (a.inst.endsWith(':')) return `<div class="asm-label">${escapeHtml(a.inst)}</div>`;
+      return `<div class="asm-line"><div class="asm-inst">${escapeHtml(a.inst).replace(/\n/g,'<br>')}</div><div class="asm-tac">; ${escapeHtml(a.tac)}</div></div>`;
+    }).join('');
+  }
+}
+
+async function runAll() {
+  await compileAndFetch();
+  if (animTimeout) clearTimeout(animTimeout);
+  
+  let p = 1;
+  showPhase(p);
+  
+  function next() {
+    p++;
+    if (p <= 6) {
+      showPhase(p);
+      animTimeout = setTimeout(next, 1000);
+    }
+  }
+  animTimeout = setTimeout(next, 1000);
+}
+
+async function stepPhase() {
+  if (!currentData) await compileAndFetch();
+  let next = activePhase + 1;
+  if (next > 6) next = 1;
+  showPhase(next);
+}
+
+// AST logic
+let svg, g, zoom, rootNodes, rootLinks;
+let astStep = 0;
+let astInterval = null;
+
+function astPrev() {
+  if (astStep > 0) astStep--;
+  updateAstStep();
+}
+function astNext() {
+  if (currentData && currentData.steps && astStep < currentData.steps.length - 1) astStep++;
+  updateAstStep();
+}
+function astPlay() {
+  const btn = document.getElementById('ast-play');
+  if (astInterval) {
+    clearInterval(astInterval); astInterval = null; btn.innerHTML = '▶ Play';
+  } else {
+    btn.innerHTML = '⏸ Pause';
+    if (currentData && currentData.steps && astStep >= currentData.steps.length - 1) astStep = 0;
+    astInterval = setInterval(() => {
+      if (currentData && currentData.steps && astStep < currentData.steps.length - 1) { astStep++; updateAstStep(); }
+      else { clearInterval(astInterval); astInterval = null; btn.innerHTML = '▶ Play'; }
+    }, 1200);
+  }
+}
+
+let treeNodesArr = [];
+
+function updateAstStep() {
+  if (!currentData || !currentData.steps || !currentData.steps.length) return;
+  const step = currentData.steps[astStep];
+  document.getElementById('ast-step-desc').innerHTML = `<strong style="color:var(--text)">Action:</strong> ${step.desc}<br><strong style="color:var(--text)">Stack:</strong> ${step.stack.join(' &rarr; ')}`;
+  
+  if (treeNodesArr.length > 0) {
+    const activeNodeIdx = Math.floor((astStep / currentData.steps.length) * treeNodesArr.length);
+    
+    g.selectAll('.node rect')
+      .transition().duration(300)
+      .attr('stroke', d => d.data._animIndex === activeNodeIdx ? 'var(--amber)' : getNodeColor(d.data.type))
+      .attr('stroke-width', d => d.data._animIndex === activeNodeIdx ? 4 : 2)
+      .attr('transform', d => d.data._animIndex === activeNodeIdx ? 'scale(1.1)' : 'scale(1)')
+      .style('opacity', d => d.data._animIndex <= activeNodeIdx ? 1 : 0);
+
+    g.selectAll('.node text')
+      .transition().duration(300)
+      .style('opacity', d => d.data._animIndex <= activeNodeIdx ? 1 : 0);
+
+    g.selectAll('.link')
+      .transition().duration(300)
+      .style('opacity', d => d.target.data._animIndex <= activeNodeIdx ? 1 : 0)
+      .attr('stroke', d => d.target.data._animIndex === activeNodeIdx ? 'var(--amber)' : 'var(--border2)')
+      .attr('stroke-width', d => d.target.data._animIndex === activeNodeIdx ? 3 : 1.5);
+  }
+}
+
+function getNodeColor(t) {
+  if (t.includes('Decl')) return 'var(--accent2)';
+  if (t.includes('Expr')||t==='Literal'||t==='Identifier') return 'var(--green)';
+  if (t.includes('Stmt')||t==='Block') return 'var(--terracotta)';
+  return 'var(--text3)';
+}
+
+function renderTree(rootData) {
+  const container = document.getElementById('ast-svg');
+  container.innerHTML = '';
+  svg = d3.select('#ast-svg');
+  g = svg.append("g");
+  zoom = d3.zoom().on("zoom", e => g.attr("transform", e.transform));
+  svg.call(zoom);
+  const width = container.clientWidth, height = container.clientHeight;
+  svg.call(zoom.transform, d3.zoomIdentity.translate(width/2, 50).scale(0.8));
+
+  const root = d3.hierarchy(rootData, d => d.children);
+  const treeLayout = d3.tree().nodeSize([140, 80]).separation((a,b)=>a.parent==b.parent?1.1:1.3);
+  treeLayout(root);
+
+  treeNodesArr = [];
+  root.eachBefore(d => { d.data._animIndex = treeNodesArr.length; treeNodesArr.push(d); });
+
+  g.selectAll('.link').data(root.links()).join('path').attr('class','link')
+   .attr('d', d3.linkVertical().x(d=>d.x).y(d=>d.y))
+   .style('opacity', 0);
+
+  const nodes = g.selectAll('.node').data(root.descendants()).join('g').attr('class','node')
+   .attr('transform', d=>`translate(${d.x},${d.y})`);
+
+  nodes.append('rect')
+   .attr('x', -60).attr('y', -20)
+   .attr('width', 120).attr('height', 40)
+   .attr('rx', 8).attr('ry', 8)
+   .attr('fill', 'var(--bg2)')
+   .attr('stroke', d => getNodeColor(d.data.type))
+   .attr('stroke-width', 2)
+   .style('opacity', 0);
+   
+  nodes.append('text').text(d => d.data.label.length > 14 ? d.data.label.substring(0,12)+'...' : d.data.label).attr('dy',2)
+   .style('opacity', 0);
+  
+  if (currentData && currentData.steps) {
+    astStep = currentData.steps.length - 1;
+    updateAstStep();
+  }
+}
+
+compileAndFetch();
+</script>
+</body>
+</html>

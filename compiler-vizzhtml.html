@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compiler Syntax Analyzer — Interactive Visualization</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* ─── RESET & ROOT ─────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* dark theme defaults */
+  --bg:        #0b0d14;
+  --bg2:       #10131e;
+  --bg3:       #161a28;
+  --bg4:       #1e2235;
+  --bg5:       #252a40;
+  --border:    #252a40;
+  --border2:   #323a60;
+  --border3:   #424e80;
+  --text:      #dde1f0;
+  --text2:     #8a92b8;
+  --text3:     #515880;
+  --accent:    #5b7cf6;
+  --accent2:   #7a96ff;
+  --accent-bg: rgba(91,124,246,.12);
+  /* token / node colours */
+  --op-fg:#f4a261; --op-bg:#221608; --op-bd:#5c3010;
+  --num-fg:#5ecfe8;--num-bg:#081820;--num-bd:#185870;
+  --var-fg:#7dde60;--var-bg:#0a1c08;--var-bd:#285018;
+  --par-fg:#c084fc;--par-bg:#180e2c;--par-bd:#4a2880;
+  --kw-fg:#ff87ab; --kw-bg:#2a0a14; --kw-bd:#701830;
+  --str-fg:#e9c46a;--str-bg:#2a200a;--str-bd:#705010;
+  --punc-fg:#8a92b8;--punc-bg:#10131e;--punc-bd:#323a60;
+  --prep-fg:#b19cd9;--prep-bg:#1a102a;--prep-bd:#502880;
+  --step-ring:#e0306a;
+  --step-glow:rgba(224,48,106,.25);
+  --active-ring:#fcc419;
+  --active-glow:rgba(252,196,25,.2);
+  --edge:#2a3060;
+  --edge-parse:#3a2860;
+  --green:#69db7c;--red:#ff6b6b;--amber:#fcc419;
+  --r:8px;--r2:12px;--r3:16px;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+  --shadow2:0 2px 12px rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f0f1f8;--bg2:#ffffff;--bg3:#eaecf8;--bg4:#e0e4f4;--bg5:#d4d9f0;
+  --border:#d0d5ec;--border2:#b8c0e0;--border3:#9aa8d8;
+  --text:#14172a;--text2:#404870;--text3:#7880a8;
+  --accent:#4060e0;--accent2:#5070f0;--accent-bg:rgba(64,96,224,.1);
+  --op-fg:#c0601a;--op-bg:#fff4ec;--op-bd:#f0b880;
+  --num-fg:#1080a8;--num-bg:#e8f6fc;--num-bd:#70c8e4;
+  --var-fg:#2a7818;--var-bg:#edf8e8;--var-bd:#80c870;
+  --par-fg:#7030b8;--par-bg:#f4ecff;--par-bd:#c090e8;
+  --step-ring:#d0205a;--step-glow:rgba(208,32,90,.15);
+  --active-ring:#c08000;--active-glow:rgba(192,128,0,.15);
+  --edge:#bcc4e4;--edge-parse:#c8b8e0;
+  --green:#2a8e3c;--red:#c03030;--amber:#b87000;
+  --shadow:0 4px 20px rgba(0,0,0,.12);--shadow2:0 2px 8px rgba(0,0,0,.1);
+}
+
+/* ─── LAYOUT ───────────────────────────────────────────────────────── */
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.5;display:flex;flex-direction:column}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;z-index:10}
+.logo{font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--accent2) 0%,var(--par-fg) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--text3);font-weight:400;letter-spacing:.5px;-webkit-text-fill-color:var(--text3)}
+
+.input-group{flex:1;min-width:220px;display:flex;gap:6px;align-items:center}
+.expr-wrap{flex:1;position:relative}
+.expr-wrap textarea{width:100%;min-height:42px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:10px 36px 10px 14px;color:var(--text);font-size:14px;font-family:'Cascadia Code','Fira Mono',monospace;outline:none;transition:border-color .2s,box-shadow .2s;resize:vertical}
+.expr-wrap textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.expr-wrap textarea.has-error{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,107,107,.12)}
+.expr-wrap .clear-x{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:17px;line-height:1;padding:2px;border-radius:4px}
+.expr-wrap .clear-x:hover{color:var(--text)}
+
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:filter .15s,transform .1s;letter-spacing:.2px}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-primary:active{transform:scale(.97)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:var(--r);padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.btn-ghost:hover{background:var(--bg4);color:var(--text)}
+.btn-ghost.active-mode{background:var(--accent-bg);border-color:var(--accent);color:var(--accent2)}
+.btn-icon{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:background .15s}
+.btn-icon:hover{background:var(--bg4);color:var(--text)}
+
+.workspace{flex:1;display:grid;grid-template-columns:290px 1fr;overflow:hidden}
+@media(max-width:680px){.workspace{grid-template-columns:1fr;grid-template-rows:260px 1fr}}
+
+/* ─── SIDEBAR ──────────────────────────────────────────────────────── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.sidebar-scroll::-webkit-scrollbar{width:5px}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.panel{padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.panel-title .pip{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* tokens */
+.token-stream{display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto;overflow-x:hidden}
+.token-stream::-webkit-scrollbar{width:4px}
+.token-stream::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tok-row{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);transition:all .25s;cursor:default;flex-shrink:0}
+.tok-row.tok-current{border-color:var(--active-ring)!important;box-shadow:0 0 0 1px var(--active-ring),var(--active-glow) 0 0 8px;transform:translateX(3px)}
+.tok-row.tok-done{opacity:.35}
+.tok-row.tok-ahead{opacity:.7}
+.tok-idx{font-size:10px;color:var(--text3);min-width:16px;text-align:right;font-family:monospace}
+.tok-val{font-family:'Cascadia Code','Fira Mono',monospace;font-weight:700;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tok-badge{font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.tb-op  {color:var(--op-fg);background:var(--op-bg);border:1px solid var(--op-bd)}
+.tb-num {color:var(--num-fg);background:var(--num-bg);border:1px solid var(--num-bd)}
+.tb-var {color:var(--var-fg);background:var(--var-bg);border:1px solid var(--var-bd)}
+.tb-par {color:var(--par-fg);background:var(--par-bg);border:1px solid var(--par-bd)}
+.tb-kw  {color:var(--kw-fg);background:var(--kw-bg);border:1px solid var(--kw-bd)}
+.tb-str {color:var(--str-fg);background:var(--str-bg);border:1px solid var(--str-bd)}
+.tb-punc{color:var(--punc-fg);background:var(--punc-bg);border:1px solid var(--punc-bd)}
+.tb-prep{color:var(--prep-fg);background:var(--prep-bg);border:1px solid var(--prep-bd)}
+
+/* step controls */
+.step-row{display:flex;gap:5px;flex-wrap:wrap}
+.step-desc{font-size:11px;color:var(--text2);margin-top:6px;min-height:32px;line-height:1.5;background:var(--bg3);border-radius:6px;padding:5px 8px;border:1px solid var(--border)}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:7px;overflow:hidden}
+.progress-fill{height:100%;background:var(--step-ring);border-radius:2px;transition:width .3s}
+
+/* call stack */
+.stack-wrap{display:flex;flex-direction:column;gap:3px;max-height:160px;overflow-y:auto}
+.stack-frame{font-size:11px;font-family:monospace;padding:4px 8px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);display:flex;align-items:center;gap:6px;transition:all .3s}
+.stack-frame.active-frame{background:var(--accent-bg);border-color:var(--accent);color:var(--accent2)}
+.stack-frame .frame-icon{font-size:10px;opacity:.6}
+
+/* traversal */
+.trav-btns{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
+.trav-out{font-family:'Cascadia Code','Fira Mono',monospace;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text2);word-break:break-all;min-height:30px;line-height:1.7;max-height:70px;overflow-y:auto}
+.trav-highlight{color:var(--accent2);font-weight:700}
+
+/* parse mode comparison note */
+.diff-note{font-size:11px;color:var(--amber);background:rgba(252,196,25,.08);border:1px solid rgba(252,196,25,.25);border-radius:6px;padding:6px 9px;margin-top:6px;display:none}
+.diff-note.show{display:block}
+
+/* error */
+.err-banner{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--red);margin:8px 14px;display:none}
+.err-banner.show{display:flex;align-items:flex-start;gap:6px}
+.err-icon{flex-shrink:0;margin-top:1px}
+
+/* ─── VISUALIZATION AREA ───────────────────────────────────────────── */
+.viz-area{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.viz-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.view-tabs{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2px}
+.v-tab{padding:5px 14px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;color:var(--text3);border:none;background:none;transition:all .18s;letter-spacing:.2px}
+.v-tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border2)}
+.zoom-group{display:flex;gap:3px;margin-left:auto}
+.zb{background:var(--bg3);border:1px solid var(--border);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:15px;font-weight:700;user-select:none;transition:background .13s}
+.zb:hover{background:var(--bg4);color:var(--text)}
+
+/* svg canvas */
+.svg-wrap{flex:1;overflow:hidden;position:relative;cursor:grab}
+.svg-wrap:active{cursor:grabbing}
+.svg-wrap svg{position:absolute;top:0;left:0;width:100%;height:100%}
+
+/* d3 node styles */
+.node-circle{transition:r .3s,stroke-width .3s}
+.node-text{pointer-events:none;font-family:'Cascadia Code','Fira Mono',monospace;font-size:12px;font-weight:700;dominant-baseline:middle;text-anchor:middle;user-select:none}
+.node-kind-label{pointer-events:none;font-family:'Segoe UI',system-ui,sans-serif;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;dominant-baseline:middle;text-anchor:middle;user-select:none;opacity:.7}
+.link-path{fill:none;stroke-dasharray:5,3}
+.link-path-solid{fill:none}
+
+/* tooltip */
+.tt{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 14px;font-size:12px;pointer-events:none;z-index:200;box-shadow:var(--shadow);display:none;max-width:220px;backdrop-filter:blur(8px)}
+.tt-kind{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.tt-val{font-family:'Cascadia Code','Fira Mono',monospace;font-size:16px;font-weight:700;margin-bottom:4px}
+.tt-desc{color:var(--text2);line-height:1.5}
+.tt-prec{margin-top:4px;font-size:10px;color:var(--text3)}
+
+/* legend */
+.legend{position:absolute;bottom:14px;right:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;font-size:11px;display:flex;flex-direction:column;gap:6px}
+.leg-row{display:flex;align-items:center;gap:8px;color:var(--text2)}
+.leg-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;border:1.5px solid}
+
+/* empty state */
+.empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.empty-icon{font-size:48px;opacity:.12;margin-bottom:14px;line-height:1}
+.empty p{color:var(--text3);font-size:13px;line-height:1.7}
+.empty strong{color:var(--text2);font-weight:600}
+
+/* sample expressions bar */
+.samples{display:flex;gap:5px;flex-wrap:wrap;padding:6px 14px 0}
+.sample-chip{font-size:11px;font-family:monospace;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;color:var(--text2);transition:all .15s;white-space:nowrap}
+.sample-chip:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent2)}
+
+/* animations */
+@keyframes nodeAppear{from{opacity:0;r:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* scrollbar global */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ─── HISTORY PANEL ───────────────────────────────────────────────── */
+.history-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto}
+.history-list::-webkit-scrollbar{width:4px}
+.history-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.history-item{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .2s;flex-shrink:0;position:relative}
+.history-item:hover{border-color:var(--accent);background:var(--accent-bg);transform:translateX(2px)}
+.history-item .hi-expr{flex:1;font-family:'Cascadia Code','Fira Mono',monospace;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item .hi-meta{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0}
+.history-item .hi-mode{font-size:8px;font-weight:700;letter-spacing:.4px;padding:1px 5px;border-radius:3px;text-transform:uppercase}
+.hi-mode.hi-prec{color:var(--accent2);background:var(--accent-bg);border:1px solid rgba(91,124,246,.25)}
+.hi-mode.hi-naive{color:var(--amber);background:rgba(252,196,25,.08);border:1px solid rgba(252,196,25,.25)}
+.history-item .hi-time{font-size:9px;color:var(--text3);white-space:nowrap}
+.history-item .hi-tokens{font-size:9px;color:var(--text3)}
+.history-item .hi-del{position:absolute;top:3px;right:4px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;opacity:0;transition:opacity .15s,color .15s;padding:2px 4px;border-radius:3px;line-height:1}
+.history-item:hover .hi-del{opacity:1}
+.history-item .hi-del:hover{color:var(--red);background:rgba(255,107,107,.1)}
+.history-header{display:flex;align-items:center;gap:6px}
+.history-header .hi-clear{margin-left:auto;font-size:9px;color:var(--text3);background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;cursor:pointer;transition:all .15s;letter-spacing:.3px}
+.history-header .hi-clear:hover{color:var(--red);border-color:var(--red);background:rgba(255,107,107,.08)}
+.history-empty{color:var(--text3);font-size:11px;font-style:italic;padding:4px 0}
+.hi-result-row{display:flex;gap:6px;align-items:center;margin-top:2px}
+.hi-result-tag{font-size:8px;font-weight:600;color:var(--green);letter-spacing:.3px}
+@keyframes historySlideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.history-item{animation:historySlideIn .25s ease-out}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP BAR ═══════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div>
+    <div class="logo">⬡ CompilerViz</div>
+    <div class="logo-sub">Syntax Analysis Explorer</div>
+  </div>
+
+  <div class="input-group">
+    <div class="expr-wrap">
+      <textarea id="expr-input" placeholder="e.g.  a + b * c   or   int main() { printf(&quot;Hello&quot;); }" autocomplete="off" spellcheck="false"></textarea>
+      <button class="clear-x" onclick="clearAll()" title="Clear">×</button>
+    </div>
+    <button class="btn-primary" onclick="runParse()">▶ Generate</button>
+  </div>
+
+  <div class="btn-ghost active-mode" id="mode-btn" onclick="toggleParseMode()" title="Toggle parse mode" style="display:flex;align-items:center;gap:5px">
+    <span id="mode-label">Precedence</span>
+  </div>
+  <a href="database-viewer.html" class="btn-ghost" style="display:flex;align-items:center;gap:5px;text-decoration:none" title="View Database">📊 Database</a>
+  <button class="btn-icon" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">☀</button>
+</div>
+
+<!-- Sample expressions -->
+<div class="samples" id="samples">
+  <div class="panel-title" style="margin:0;align-self:center;padding-right:4px"><span class="pip" style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block;margin-right:2px"></span>Try:</div>
+  <div class="sample-chip" onclick="loadSample(this)">a + b * c</div>
+  <div class="sample-chip" onclick="loadSample(this)">(a + b) * c</div>
+  <div class="sample-chip" onclick="loadSample(this)">a + b * c - d / e</div>
+  <div class="sample-chip" onclick="loadSample(this)">(x + y) * (z - 1)</div>
+  <div class="sample-chip" onclick="loadSample(this)">2 * a + 3 * b - c</div>
+  <div class="sample-chip" onclick="loadSample(this)">#include &lt;stdio.h&gt;\nint main() {\n  printf("Hello!");\n  return 0;\n}</div>
+</div>
+
+<!-- ═══ WORKSPACE ════════════════════════════════════════════════════ -->
+<div class="workspace">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────── -->
+  <div class="sidebar">
+    <div class="sidebar-scroll">
+
+      <!-- Token Stream -->
+      <div class="panel">
+        <div class="panel-title">
+          <span class="pip" style="background:var(--op-fg)"></span>
+          Token Stream
+          <span id="tok-count" style="margin-left:auto;font-size:10px;background:var(--bg4);padding:1px 7px;border-radius:10px;color:var(--text2)"></span>
+        </div>
+        <div class="token-stream" id="token-list">
+          <div style="color:var(--text3);font-size:12px">Enter an expression above…</div>
+        </div>
+      </div>
+
+      <!-- Parse Mode & Diff -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--accent2)"></span>Parse Strategy</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn-ghost active-mode" id="seg-prec" onclick="setMode('precedence')">Precedence</button>
+          <button class="btn-ghost" id="seg-naive" onclick="setMode('naive')">Naive LR</button>
+        </div>
+        <div class="diff-note" id="diff-note">
+          ⚠ Naive LR ignores operator precedence — * and / are NOT evaluated before + and −. The tree shape differs!
+        </div>
+      </div>
+
+      <!-- Step Controls -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--step-ring)"></span>Step-by-Step Parser</div>
+        <div class="step-row">
+          <button class="btn-ghost" id="btn-prev" onclick="prevStep()">◀ Prev</button>
+          <button class="btn-ghost" id="btn-next" onclick="nextStep()">Next ▶</button>
+          <button class="btn-ghost" id="btn-play" onclick="togglePlay()">▶ Play</button>
+          <button class="btn-ghost" onclick="resetSteps()">↺</button>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="step-progress" style="width:0%"></div></div>
+        <div class="step-desc" id="step-desc">Generate a tree to begin stepping through the parse process.</div>
+      </div>
+
+      <!-- Call Stack -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--num-fg)"></span>Parser Call Stack</div>
+        <div class="stack-wrap" id="call-stack">
+          <div style="color:var(--text3);font-size:11px">—</div>
+        </div>
+      </div>
+
+      <!-- Traversals -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--var-fg)"></span>Tree Traversals</div>
+        <div class="trav-btns">
+          <button class="btn-ghost" onclick="doTraversal('inorder')">Inorder</button>
+          <button class="btn-ghost" onclick="doTraversal('preorder')">Preorder</button>
+          <button class="btn-ghost" onclick="doTraversal('postorder')">Postorder</button>
+        </div>
+        <div class="trav-out" id="trav-out">—</div>
+      </div>
+
+      <!-- Parse History (IndexedDB) -->
+      <div class="panel">
+        <div class="history-header">
+          <div class="panel-title" style="margin-bottom:0">
+            <span class="pip" style="background:var(--amber)"></span>
+            Parse History
+            <span id="history-count" style="margin-left:auto;font-size:10px;background:var(--bg4);padding:1px 7px;border-radius:10px;color:var(--text2)"></span>
+          </div>
+          <button class="hi-clear" onclick="clearHistory()" title="Clear all history">✕ Clear</button>
+        </div>
+        <div class="history-list" id="history-list" style="margin-top:8px">
+          <div class="history-empty">No history yet — generate a tree to begin.</div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar-scroll -->
+
+    <!-- Error banner pinned to bottom of sidebar -->
+    <div class="err-banner" id="err-banner">
+      <span class="err-icon">⚠</span>
+      <span id="err-text"></span>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- ── VIZ AREA ─────────────────────────────────────────────────── -->
+  <div class="viz-area">
+
+    <div class="viz-bar">
+      <div class="view-tabs">
+        <button class="v-tab active" id="tab-ast"   onclick="setView('ast',this)">Abstract Syntax Tree</button>
+        <button class="v-tab"        id="tab-parse" onclick="setView('parse',this)">Parse Tree</button>
+      </div>
+      <div id="view-badge" style="font-size:11px;color:var(--text3)"></div>
+      <div class="zoom-group">
+        <div class="zb" onclick="zoomBy(1.2)" title="Zoom in">+</div>
+        <div class="zb" onclick="zoomBy(.833)" title="Zoom out">−</div>
+        <div class="zb" onclick="zoomReset()" title="Fit to screen">⌂</div>
+      </div>
+    </div>
+
+    <div class="svg-wrap" id="svg-wrap">
+      <svg id="main-svg">
+        <defs>
+          <filter id="glow-op">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+          <filter id="glow-step">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <g id="tree-root"></g>
+      </svg>
+
+      <div class="empty" id="empty-state">
+        <div class="empty-icon">⬡</div>
+        <p>Enter an arithmetic expression<br>and click <strong>▶ Generate</strong></p>
+      </div>
+
+      <div class="legend" id="legend" style="display:none">
+        <div class="leg-row"><div class="leg-dot" style="background:var(--op-bg);border-color:var(--op-fg)"></div>Operator  (+−×÷)</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--num-bg);border-color:var(--num-fg)"></div>Number literal</div>
+        <div class="leg-row"><div class="leg-dot" style="background:var(--var-bg);border-color:var(--var-fg)"></div>Variable / identifier</div>
+        <div class="leg-row" id="leg-group" style="display:none"><div class="leg-dot" style="background:var(--par-bg);border-color:var(--par-fg)"></div>Grouping (parse tree)</div>
+      </div>
+    </div>
+
+  </div><!-- /viz-area -->
+</div><!-- /workspace -->
+
+<!-- Tooltip -->
+<div class="tt" id="tooltip">
+  <div class="tt-kind" id="tt-kind"></div>
+  <div class="tt-val"  id="tt-val"></div>
+  <div class="tt-desc" id="tt-desc"></div>
+  <div class="tt-prec" id="tt-prec"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════════ */
+let darkMode  = true;
+let parseMode = 'precedence';
+let viewMode  = 'ast';
+
+let tokens      = [];
+let astRoot     = null;
+let parseRoot   = null;
+let parseSteps  = [];
+let callStacks  = [];
+
+let stepIdx     = -1;
+let playTimer   = null;
+
+let revealedIds = new Set();   // node ids animated in
+let highlightId = null;        // currently stepped-on node id
+
+// D3 zoom
+let svgSel, gSel, zoom;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LEXER
+═══════════════════════════════════════════════════════════════════════ */
+function lex(src) {
+  const toks = [];
+  let i = 0;
+  const keywords = new Set(['int','void','return','if','else','while','for','char','float','double']);
+
+  while (i < src.length) {
+    if (/\s/.test(src[i])) { i++; continue; }
+    const start = i;
+
+    // Preprocessor (#include)
+    if (src[i] === '#') {
+      let v = '';
+      while (i < src.length && src[i] !== '\n') v += src[i++];
+      toks.push({ type: 'PREP', value: v.trim(), pos: start });
+      continue;
+    }
+
+    // Strings ("...")
+    if (src[i] === '"') {
+      let v = src[i++];
+      while (i < src.length && src[i] !== '"') {
+        if (src[i] === '\\') { v += src[i++]; }
+        v += src[i++];
+      }
+      if (i < src.length) v += src[i++]; // closing "
+      toks.push({ type: 'STR', value: v, pos: start });
+      continue;
+    }
+
+    // Numbers
+    if (/\d/.test(src[i])) {
+      let v = '';
+      while (i < src.length && /[\d.]/.test(src[i])) v += src[i++];
+      toks.push({ type: 'NUMBER', value: v, pos: start });
+      continue;
+    }
+
+    // Identifiers and Keywords
+    if (/[a-zA-Z_]/.test(src[i])) {
+      let v = '';
+      while (i < src.length && /[a-zA-Z_0-9]/.test(src[i])) v += src[i++];
+      if (keywords.has(v)) {
+        toks.push({ type: 'KW', value: v, pos: start });
+      } else {
+        toks.push({ type: 'IDENT', value: v, pos: start });
+      }
+      continue;
+    }
+
+    // Multi-char operators (==, <=, >=, !=, &&, ||) or single char operators
+    if ('+-*/=<>!&|'.includes(src[i])) {
+      let v = src[i++];
+      if (i < src.length && ('=+|&'.includes(src[i]) && '=+&|<>!'.includes(v))) {
+        v += src[i++]; // simple 2-char op support
+      }
+      toks.push({ type: 'OP', value: v, pos: start });
+      continue;
+    }
+
+    // Punctuation
+    if (src[i] === '(') { toks.push({ type: 'LPAREN', value: '(', pos: start }); i++; continue; }
+    if (src[i] === ')') { toks.push({ type: 'RPAREN', value: ')', pos: start }); i++; continue; }
+    if ('{},;[]'.includes(src[i])) {
+      toks.push({ type: 'PUNC', value: src[i], pos: start }); i++; continue;
+    }
+
+    throw { msg: `Unexpected character '${src[i]}'`, pos: start };
+  }
+  toks.push({ type: 'EOF', value: '', pos: src.length });
+  return toks;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PARSER  — Recursive descent with precedence
+   Collects: parseSteps[] and callStacks[] per step
+═══════════════════════════════════════════════════════════════════════ */
+let _tok, _pos, _uid;
+function freshUID() { return _uid++; }
+
+function addStep(desc, nodeLabel, tokenIdx, stack) {
+  parseSteps.push({ desc, nodeLabel, tokenIdx: Math.max(0, tokenIdx), stack: [...stack] });
+}
+
+function parseWithPrecedence(toks) {
+  _tok = toks; _pos = 0; _uid = 0;
+  parseSteps = []; callStacks = [];
+  const stack = [];
+
+  function peek()    { return _tok[_pos]; }
+  function advance() { return _tok[_pos++]; }
+
+  function parseExpr() {
+    stack.push('parseExpr');
+    addStep('Entering expression parser', null, _pos, stack);
+    const node = parseAddSub();
+    stack.pop();
+    return node;
+  }
+
+  function parseAddSub() {
+    stack.push('parseAddSub');
+    addStep('Parsing lower precedence (+ − = < >)', null, _pos, stack);
+    let left = parseMulDiv();
+    if (!left) { stack.pop(); return null; }
+    while (peek().type === 'OP' && !'*/'.includes(peek().value)) {
+      const op = advance();
+      addStep(`Matched '${op.value}' (low-precedence)`, op.value, _pos-1, stack);
+      const right = parseMulDiv();
+      left = { id:freshUID(), kind:'op', label:op.value, children:right ? [left, right] : [left], token:op, prec:'low (1)' };
+      addStep(`Built '${op.value}' node`, op.value, _pos-1, stack);
+    }
+    stack.pop();
+    return left;
+  }
+
+  function parseMulDiv() {
+    stack.push('parseMulDiv');
+    addStep('Parsing higher precedence (× ÷)', null, _pos, stack);
+    let left = parsePrimary();
+    if (!left) { stack.pop(); return null; }
+    while (peek().type === 'OP' && '*/'.includes(peek().value)) {
+      const op = advance();
+      addStep(`Matched '${op.value}' (high-precedence)`, op.value, _pos-1, stack);
+      const right = parsePrimary();
+      left = { id:freshUID(), kind:'op', label:op.value, children:right ? [left, right] : [left], token:op, prec:'high (2)' };
+      addStep(`Built '${op.value}' node`, op.value, _pos-1, stack);
+    }
+    stack.pop();
+    return left;
+  }
+
+  function parsePrimary() {
+    stack.push('parsePrimary');
+    const t = peek();
+
+    if (['NUMBER','IDENT','STR','KW','PREP'].includes(t.type)) {
+      advance();
+      addStep(`Consumed ${t.type} '${t.value}'`, t.value, _pos-1, stack);
+      stack.pop();
+      let k = 'var';
+      if (t.type === 'NUMBER') k = 'num';
+      else if (t.type === 'KW' || t.type === 'PREP') k = 'op'; // visually distinct
+      return { id:freshUID(), kind: k, label:t.value, children:[], token:t };
+    }
+
+    if (t.type === 'LPAREN' || t.type === 'PUNC' && (t.value === '{' || t.value === '[')) {
+      advance();
+      const closer = t.value === '(' ? ')' : (t.value === '{' ? '}' : ']');
+      addStep(`Matched '${t.value}' — entering grouped section`, t.value, _pos-1, stack);
+      
+      let inner = null;
+      if (peek().type !== 'EOF' && peek().value !== closer) {
+        inner = parseExpr();
+      }
+
+      if (peek().value === closer) {
+        advance();
+        addStep(`Matched '${closer}' — closing group`, closer, _pos-1, stack);
+      }
+      stack.pop();
+      return { id:freshUID(), kind:'group', label:`${t.value}…${closer}`, children:inner ? [inner] : [], token:t };
+    }
+
+    if (t.type === 'EOF') return null;
+    
+    // Fallback: treat stray punctuation as an operator node
+    advance();
+    stack.pop();
+    return { id:freshUID(), kind:'op', label:t.value, children:[], token:t };
+  }
+
+  function parseExpr() {
+    stack.push('parseExpr');
+    addStep('Entering expression/statement sequence', null, _pos, stack);
+    
+    // Parse left side
+    let left = parseAddSub();
+    if (!left) { stack.pop(); return null; }
+
+    // Sequence chaining (e.g. statement after statement separated by semicolon or just space)
+    while (peek().type !== 'EOF' && peek().type !== 'RPAREN' && peek().value !== '}' && peek().value !== ']') {
+      // If there's an explicit separator like ';' or ','
+      let sepLabel = 'seq';
+      let tok = peek();
+      if (tok.type === 'PUNC' && (tok.value === ';' || tok.value === ',')) {
+        advance();
+        sepLabel = tok.value;
+        addStep(`Sequence separator '${sepLabel}'`, sepLabel, _pos-1, stack);
+      }
+      
+      const right = parseAddSub();
+      if (!right) break;
+      left = { id:freshUID(), kind:'op', label:sepLabel, children:[left, right], token:tok, prec:'seq' };
+    }
+
+    stack.pop();
+    return left;
+  }
+
+  const root = parseExpr();
+  if (peek().type !== 'EOF') {
+    // If not EOF, we just wrap what we have in an error node to visualize it instead of completely crashing
+    addStep(`Unexpected trailing tokens`, null, _pos, []);
+  } else {
+    addStep('✓ Parse complete', null, _pos-1, []);
+  }
+  return root;
+}
+
+function parseNaiveLR(toks) {
+  _tok = toks; _pos = 0; _uid = 0;
+  parseSteps = [];
+  const stack = [];
+
+  function peek()    { return _tok[_pos]; }
+  function advance() { return _tok[_pos++]; }
+
+  function parsePrimaryLR() {
+    stack.push('parsePrimary');
+    const t = peek();
+
+    if (['NUMBER','IDENT','STR','KW','PREP'].includes(t.type)) {
+      advance();
+      addStep(`[Naive] Consumed ${t.type} '${t.value}'`, t.value, _pos-1, stack);
+      stack.pop();
+      let k = 'var';
+      if (t.type === 'NUMBER') k = 'num';
+      else if (t.type === 'KW' || t.type === 'PREP') k = 'op';
+      return { id:freshUID(), kind:k, label:t.value, children:[], token:t };
+    }
+
+    if (t.type === 'LPAREN' || t.type === 'PUNC' && (t.value === '{' || t.value === '[')) {
+      advance();
+      const closer = t.value === '(' ? ')' : (t.value === '{' ? '}' : ']');
+      addStep(`[Naive] Group '${t.value}'`, t.value, _pos-1, stack);
+      
+      let inner = null;
+      if (peek().type !== 'EOF' && peek().value !== closer) {
+        inner = parseExprLR();
+      }
+
+      if (peek().value === closer) advance();
+      stack.pop();
+      return { id:freshUID(), kind:'group', label:`${t.value}…${closer}`, children:inner ? [inner] : [], token:t };
+    }
+
+    if (t.type === 'EOF') return null;
+    
+    advance();
+    stack.pop();
+    return { id:freshUID(), kind:'op', label:t.value, children:[], token:t };
+  }
+
+  function parseExprLR() {
+    stack.push('parseExpr');
+    addStep('[Naive] Parse sequence (no precedence)', null, _pos, stack);
+    let left = parsePrimaryLR();
+    if (!left) { stack.pop(); return null; }
+
+    while (peek().type !== 'EOF' && peek().type !== 'RPAREN' && peek().value !== '}' && peek().value !== ']') {
+      const op = advance();
+      addStep(`[Naive] Node '${op.value}' (left-to-right)`, op.value, _pos-1, stack);
+      const right = parsePrimaryLR();
+      left = { id:freshUID(), kind:'op', label:op.value, children:right ? [left, right] : [left], token:op, prec:'all equal' };
+    }
+    stack.pop();
+    return left;
+  }
+
+  const root = parseExprLR();
+  addStep('[Naive] Parse complete', null, _pos-1, []);
+  return root;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AST vs PARSE TREE  (parse tree keeps Group nodes; AST strips them)
+═══════════════════════════════════════════════════════════════════════ */
+function toAST(node) {
+  if (!node) return null;
+  if (node.kind === 'group') return toAST((node.children || [])[0]);
+  return { ...node, children: (node.children || []).map(toAST).filter(Boolean) };
+}
+function toParseTree(node) {
+  if (!node) return null;
+  return { ...node, children: (node.children || []).map(toParseTree).filter(Boolean) };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TRAVERSALS
+═══════════════════════════════════════════════════════════════════════ */
+function inorder(n,out)   { if(!n)return; const c = n.children||[]; if(c[0]) inorder(c[0],out); out.push(n.label); if(c[1]) inorder(c[1],out); if(c.length===1&&n.kind==='group') inorder(c[0],out); }
+function preorder(n,out)  { if(!n)return; out.push(n.label); (n.children||[]).forEach(c=>preorder(c,out)); }
+function postorder(n,out) { if(!n)return; (n.children||[]).forEach(c=>postorder(c,out)); out.push(n.label); }
+
+function doTraversal(type) {
+  const root = viewMode === 'ast' ? astRoot : parseRoot;
+  if (!root) { document.getElementById('trav-out').textContent='Generate a tree first.'; return; }
+  const out = [];
+  if (type==='inorder')   inorder(root,out);
+  if (type==='preorder')  preorder(root,out);
+  if (type==='postorder') postorder(root,out);
+  // Animate traversal highlight in output
+  const el = document.getElementById('trav-out');
+  el.innerHTML = out.map((v,i)=>`<span class="trav-highlight" style="animation-delay:${i*.15}s;animation:pulse .4s ${i*.15}s both">${v}</span>`).join('<span style="color:var(--text3)"> → </span>');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   D3 TREE LAYOUT
+═══════════════════════════════════════════════════════════════════════ */
+const NODE_R   = 26;
+const V_SEP    = 90;
+const H_SEP_MUL = 2.0;
+
+function layoutD3(root) {
+  const hierarchy = d3.hierarchy(root, d => d.children && d.children.length ? d.children : null);
+  const treeLayout = d3.tree()
+    .nodeSize([NODE_R * H_SEP_MUL * 2.5, V_SEP])
+    .separation((a,b) => a.parent===b.parent ? 1.1 : 1.4);
+  return treeLayout(hierarchy);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SVG RENDER (D3)
+═══════════════════════════════════════════════════════════════════════ */
+function nodeColor(kind) {
+  const cs = getComputedStyle(document.documentElement);
+  const g = v => cs.getPropertyValue(v).trim();
+  if (kind==='op')    return { fill:g('--op-bg'),  stroke:g('--op-fg'),  text:g('--op-fg')  };
+  if (kind==='num')   return { fill:g('--num-bg'), stroke:g('--num-fg'), text:g('--num-fg') };
+  if (kind==='var')   return { fill:g('--var-bg'), stroke:g('--var-fg'), text:g('--var-fg') };
+  if (kind==='group') return { fill:g('--par-bg'), stroke:g('--par-fg'), text:g('--par-fg') };
+  return { fill:'var(--bg3)', stroke:'var(--border2)', text:'var(--text)' };
+}
+
+function renderTree(root) {
+  if (!gSel) return;
+  gSel.selectAll('*').remove();
+  if (!root) return;
+
+  const layout = layoutD3(root);
+  const nodes  = layout.descendants();
+  const links  = layout.links();
+
+  // edges
+  const linkG = gSel.append('g').attr('class','links');
+  linkG.selectAll('path')
+    .data(links)
+    .join('path')
+    .attr('class', d => viewMode==='parse' ? 'link-path' : 'link-path-solid')
+    .attr('stroke', () => {
+      const cs = getComputedStyle(document.documentElement);
+      return viewMode==='parse' ? cs.getPropertyValue('--edge-parse').trim() : cs.getPropertyValue('--edge').trim();
+    })
+    .attr('stroke-width', 1.5)
+    .attr('d', d3.linkVertical().x(d=>d.x).y(d=>d.y))
+    .attr('opacity', d => revealedIds.has(d.target.data.id) ? 1 : 0);
+
+  // nodes
+  const nodeG = gSel.append('g').attr('class','nodes');
+  const nodeGrps = nodeG.selectAll('g.nd')
+    .data(nodes)
+    .join('g')
+    .attr('class','nd')
+    .attr('transform', d=>`translate(${d.x},${d.y})`)
+    .attr('opacity', d => revealedIds.has(d.data.id) ? 1 : 0)
+    .style('cursor','pointer')
+    .on('mouseover', (event,d) => showTooltip(event, d.data))
+    .on('mousemove', (event) => moveTooltip(event))
+    .on('mouseout',  () => hideTooltip());
+
+  // glow ring for step-highlighted node
+  nodeGrps.append('circle')
+    .attr('r', NODE_R + 6)
+    .attr('fill', d => d.data.id===highlightId ? 'var(--step-glow)' : 'none')
+    .attr('stroke', d => d.data.id===highlightId ? 'var(--step-ring)' : 'none')
+    .attr('stroke-width', 2)
+    .attr('opacity', d => d.data.id===highlightId ? 1 : 0);
+
+  // main circle
+  nodeGrps.append('circle')
+    .attr('class','node-circle')
+    .attr('r', NODE_R)
+    .attr('fill',   d => nodeColor(d.data.kind).fill)
+    .attr('stroke', d => d.data.id===highlightId ? 'var(--step-ring)' : nodeColor(d.data.kind).stroke)
+    .attr('stroke-width', d => d.data.id===highlightId ? 2.5 : 1.5);
+
+  // label
+  nodeGrps.append('text')
+    .attr('class','node-text')
+    .attr('fill', d => nodeColor(d.data.kind).text)
+    .attr('y', d => d.data.kind==='op' ? -2 : 0)
+    .text(d => d.data.label.length>6 ? d.data.label.slice(0,5)+'…' : d.data.label);
+
+  // kind sub-label for operators
+  nodeGrps.filter(d=>d.data.kind==='op')
+    .append('text')
+    .attr('class','node-kind-label')
+    .attr('fill', d => nodeColor(d.data.kind).text)
+    .attr('y', 11)
+    .text('OP');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANIMATE NODES IN SEQUENCE
+═══════════════════════════════════════════════════════════════════════ */
+function collectOrder(node, arr) {
+  if (!node) return;
+  arr.push(node.id);
+  node.children.forEach(c => collectOrder(c, arr));
+}
+
+let animQueue = [], animTimer = null;
+function animateReveal(root) {
+  revealedIds.clear();
+  highlightId = null;
+  if (animTimer) clearInterval(animTimer);
+  animQueue = [];
+  collectOrder(root, animQueue);
+  let i = 0;
+  animTimer = setInterval(() => {
+    if (i >= animQueue.length) { clearInterval(animTimer); animTimer = null; return; }
+    revealedIds.add(animQueue[i]);
+    renderTree(getCurrentRoot());
+    i++;
+  }, 110);
+}
+
+function getCurrentRoot() { return viewMode==='ast' ? astRoot : parseRoot; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ZOOM & PAN (D3)
+═══════════════════════════════════════════════════════════════════════ */
+function initSVG() {
+  const wrap = document.getElementById('svg-wrap');
+  svgSel = d3.select('#main-svg');
+  gSel   = d3.select('#tree-root');
+
+  zoom = d3.zoom()
+    .scaleExtent([0.1, 4])
+    .on('zoom', e => gSel.attr('transform', e.transform));
+
+  svgSel.call(zoom).on('dblclick.zoom', null);
+}
+
+function zoomBy(factor) {
+  const wrap = document.getElementById('svg-wrap');
+  svgSel.transition().duration(250)
+    .call(zoom.scaleBy, factor, [wrap.clientWidth/2, wrap.clientHeight/2]);
+}
+
+function zoomReset() {
+  const root = getCurrentRoot();
+  if (!root) { svgSel.transition().duration(300).call(zoom.transform, d3.zoomIdentity); return; }
+  const wrap = document.getElementById('svg-wrap');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  const layout = layoutD3(root);
+  const nodes  = layout.descendants();
+  const xs = nodes.map(d=>d.x), ys = nodes.map(d=>d.y);
+  const minX=Math.min(...xs)-NODE_R*2, maxX=Math.max(...xs)+NODE_R*2;
+  const minY=Math.min(...ys)-NODE_R*2, maxY=Math.max(...ys)+NODE_R*2;
+  const tw=maxX-minX, th=maxY-minY;
+  const s = Math.min(0.95, (W-40)/tw, (H-40)/th);
+  const tx = W/2 - s*(minX+tw/2);
+  const ty = (H-40)*0.08 - s*minY + 30;
+  svgSel.transition().duration(400)
+    .call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(s));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOKENS UI
+═══════════════════════════════════════════════════════════════════════ */
+function renderTokens(currentIdx) {
+  const list = document.getElementById('token-list');
+  const vis  = tokens.filter(t=>t.type!=='EOF');
+  if (!vis.length) { list.innerHTML='<div style="color:var(--text3);font-size:12px">—</div>'; return; }
+  document.getElementById('tok-count').textContent = vis.length + ' tokens';
+  list.innerHTML = vis.map((t,i)=>{
+    const cls  = t.type==='OP'?'tb-op':t.type==='NUMBER'?'tb-num':t.type==='IDENT'?'tb-var':'tb-par';
+    const name = t.type==='IDENT'?'IDENT':t.type==='LPAREN'||t.type==='RPAREN'?'PAREN':t.type;
+    const col  = t.type==='OP'?'var(--op-fg)':t.type==='NUMBER'?'var(--num-fg)':t.type==='IDENT'?'var(--var-fg)':'var(--par-fg)';
+    const cur  = (currentIdx >= 0 && i===currentIdx) ? ' tok-current' : '';
+    const done = (currentIdx >= 0 && i < currentIdx)  ? ' tok-done'   : '';
+    return `<div class="tok-row${cur}${done}">
+      <span class="tok-idx">${i}</span>
+      <span class="tok-val" style="color:${col}">${t.value}</span>
+      <span class="tok-badge ${cls}">${name}</span>
+    </div>`;
+  }).join('');
+  // scroll active token into view
+  if (currentIdx >= 0) {
+    const rows = list.querySelectorAll('.tok-row');
+    if (rows[currentIdx]) rows[currentIdx].scrollIntoView({ block:'nearest' });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STEP CONTROLS
+═══════════════════════════════════════════════════════════════════════ */
+function updateStep() {
+  const n = parseSteps.length;
+  if (n === 0) return;
+  const idx = Math.max(0, stepIdx);
+  const step = parseSteps[idx];
+
+  // progress bar
+  document.getElementById('step-progress').style.width = ((idx+1)/n*100)+'%';
+
+  // description
+  document.getElementById('step-desc').innerHTML =
+    `<span style="color:var(--text3);font-size:10px">Step ${idx+1} / ${n}</span><br>${step.desc}`;
+
+  // token highlight
+  renderTokens(step.tokenIdx);
+
+  // call stack
+  const stackEl = document.getElementById('call-stack');
+  if (step.stack && step.stack.length) {
+    stackEl.innerHTML = [...step.stack].reverse().map((f,i)=>
+      `<div class="stack-frame${i===0?' active-frame':''}">
+        <span class="frame-icon">${i===0?'▶':'  '}</span>${f}()
+      </div>`).join('');
+  } else {
+    stackEl.innerHTML = '<div style="color:var(--text3);font-size:11px">—</div>';
+  }
+
+  // find node to highlight
+  const nodeLabel = step.nodeLabel;
+  highlightId = null;
+  if (nodeLabel) {
+    const root = getCurrentRoot();
+    function find(n) {
+      if (!n) return;
+      if (n.label===nodeLabel && revealedIds.has(n.id)) { highlightId=n.id; return; }
+      n.children.forEach(find);
+    }
+    find(root);
+  }
+  renderTree(getCurrentRoot());
+}
+
+function nextStep() {
+  if (stepIdx < parseSteps.length-1) { stepIdx++; updateStep(); }
+}
+function prevStep() {
+  if (stepIdx > 0) { stepIdx--; updateStep(); }
+}
+function resetSteps() {
+  stopPlay();
+  stepIdx = -1;
+  highlightId = null;
+  document.getElementById('step-desc').textContent = 'Click Next ▶ to step through the parse process.';
+  document.getElementById('step-progress').style.width='0%';
+  document.getElementById('call-stack').innerHTML='<div style="color:var(--text3);font-size:11px">—</div>';
+  renderTokens(-1);
+  renderTree(getCurrentRoot());
+}
+function togglePlay() {
+  if (playTimer) { stopPlay(); return; }
+  document.getElementById('btn-play').textContent = '⏸ Pause';
+  if (stepIdx >= parseSteps.length-1) stepIdx = -1;
+  playTimer = setInterval(()=>{
+    if (stepIdx < parseSteps.length-1) { nextStep(); }
+    else stopPlay();
+  }, 650);
+}
+function stopPlay() {
+  if (playTimer) { clearInterval(playTimer); playTimer=null; }
+  document.getElementById('btn-play').textContent = '▶ Play';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════════════════════════════════ */
+function showTooltip(event, node) {
+  const tt = document.getElementById('tooltip');
+  const c  = nodeColor(node.kind);
+  document.getElementById('tt-kind').style.color = c.text;
+  document.getElementById('tt-kind').textContent = node.kind.toUpperCase();
+  document.getElementById('tt-val').style.color  = c.text;
+  document.getElementById('tt-val').textContent  = node.label;
+  const descs = {
+    op:    'Binary operator — takes two operands (left and right children)',
+    num:   'Numeric literal — leaf node, no children',
+    var:   'Variable/identifier — leaf node representing a named value',
+    group: 'Parenthesized grouping — appears in parse tree, collapsed in AST',
+  };
+  document.getElementById('tt-desc').textContent = descs[node.kind] || '';
+  document.getElementById('tt-prec').textContent = node.prec ? `Precedence: ${node.prec}` : '';
+  moveTooltip(event);
+  tt.style.display='block';
+}
+function moveTooltip(event) {
+  const tt = document.getElementById('tooltip');
+  const x = event.clientX+16, y = event.clientY-10;
+  tt.style.left = Math.min(x, window.innerWidth-230)+'px';
+  tt.style.top  = Math.max(10, y)+'px';
+}
+function hideTooltip() { document.getElementById('tooltip').style.display='none'; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN PARSE
+═══════════════════════════════════════════════════════════════════════ */
+let debounceTimer;
+function runParse(animate=true) {
+  const expr = document.getElementById('expr-input').value.trim();
+  stopPlay();
+  clearError();
+  document.getElementById('expr-input').classList.remove('has-error');
+  document.getElementById('trav-out').textContent='—';
+  stepIdx=-1; highlightId=null; revealedIds.clear();
+
+  if (!expr) { clearAll(); return; }
+
+  try {
+    tokens = lex(expr);
+    renderTokens(-1);
+
+    const rawTree = parseMode==='precedence'
+      ? parseWithPrecedence(tokens)
+      : parseNaiveLR(tokens);
+
+    astRoot   = toAST(rawTree);
+    parseRoot = toParseTree(rawTree);
+
+    document.getElementById('empty-state').style.display='none';
+    document.getElementById('legend').style.display='';
+    document.getElementById('leg-group').style.display = viewMode==='parse' ? '' : 'none';
+    document.getElementById('view-badge').textContent =
+      viewMode==='ast' ? 'Groups removed · Operator precedence enforced'
+                       : 'All nodes retained · Parentheses shown';
+
+    // Naive mode note
+    const noteEl = document.getElementById('diff-note');
+    noteEl.classList.toggle('show', parseMode==='naive');
+
+    resetSteps();
+    document.getElementById('step-desc').textContent='Click Next ▶ to step through the parse process.';
+
+    // ── Save to database ──
+    saveToHistory(expr, parseMode, tokens, parseSteps.length);
+
+    if (animate) {
+      animateReveal(getCurrentRoot());
+    } else {
+      const root = getCurrentRoot();
+      collectOrder(root, animQueue=[]);
+      animQueue.forEach(id=>revealedIds.add(id));
+      renderTree(root);
+    }
+    setTimeout(zoomReset, 50);
+
+  } catch(err) {
+    showError(err.msg || String(err), err.pos);
+    document.getElementById('expr-input').classList.add('has-error');
+    tokens = [];
+    renderTokens(-1);
+    astRoot=null; parseRoot=null;
+    gSel.selectAll('*').remove();
+    document.getElementById('empty-state').style.display='';
+    document.getElementById('legend').style.display='none';
+  }
+}
+
+function showError(msg, pos) {
+  const el = document.getElementById('err-banner');
+  document.getElementById('err-text').textContent = pos!=null ? `${msg} (position ${pos})` : msg;
+  el.classList.add('show');
+}
+function clearError() {
+  document.getElementById('err-banner').classList.remove('show');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VIEW / MODE TOGGLES
+═══════════════════════════════════════════════════════════════════════ */
+function setView(mode, btn) {
+  viewMode = mode;
+  document.querySelectorAll('.v-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('leg-group').style.display = mode==='parse' ? '' : 'none';
+  document.getElementById('view-badge').textContent =
+    mode==='ast' ? 'Groups removed · Operator precedence enforced'
+                 : 'All nodes retained · Parentheses shown';
+  if (astRoot) {
+    const root = getCurrentRoot();
+    collectOrder(root, animQueue=[]);
+    animQueue.forEach(id=>revealedIds.add(id));
+    renderTree(root);
+    setTimeout(zoomReset, 30);
+    stepIdx=-1; highlightId=null;
+    document.getElementById('step-desc').textContent='Click Next ▶ to step through the parse process.';
+    document.getElementById('step-progress').style.width='0%';
+  }
+}
+
+function setMode(mode) {
+  parseMode = mode;
+  document.getElementById('seg-prec').classList.toggle('active-mode', mode==='precedence');
+  document.getElementById('seg-naive').classList.toggle('active-mode', mode==='naive');
+  document.getElementById('mode-label').textContent = mode==='precedence' ? 'Precedence' : 'Naive LR';
+  if (astRoot) runParse(false);
+}
+function toggleParseMode() {
+  setMode(parseMode==='precedence'?'naive':'precedence');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.documentElement.setAttribute('data-theme', darkMode?'':'light');
+  document.getElementById('theme-btn').textContent = darkMode ? '☀' : '🌙';
+  renderTree(getCurrentRoot());
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════════════ */
+function clearAll() {
+  document.getElementById('expr-input').value='';
+  tokens=[]; astRoot=null; parseRoot=null;
+  parseSteps=[]; revealedIds.clear(); highlightId=null;
+  if(gSel) gSel.selectAll('*').remove();
+  document.getElementById('empty-state').style.display='';
+  document.getElementById('legend').style.display='none';
+  document.getElementById('token-list').innerHTML='<div style="color:var(--text3);font-size:12px">Enter an expression above…</div>';
+  document.getElementById('tok-count').textContent='';
+  document.getElementById('trav-out').textContent='—';
+  document.getElementById('step-desc').textContent='Generate a tree to begin stepping through the parse process.';
+  document.getElementById('step-progress').style.width='0%';
+  document.getElementById('call-stack').innerHTML='<div style="color:var(--text3);font-size:11px">—</div>';
+  document.getElementById('view-badge').textContent='';
+  clearError();
+  stopPlay();
+}
+
+function loadSample(el) {
+  document.getElementById('expr-input').value = el.textContent.trim();
+  runParse();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  initSVG();
+
+  // Input events
+  const inp = document.getElementById('expr-input');
+  inp.addEventListener('keydown', e=>{
+    if (e.key==='Enter') { runParse(); return; }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(()=>{
+      const expr = inp.value.trim();
+      if (!expr) return;
+      try {
+        const t = lex(expr);
+        tokens = t;
+        renderTokens(-1);
+        inp.classList.remove('has-error');
+        clearError();
+      } catch(err) {
+        inp.classList.add('has-error');
+      }
+    }, 280);
+  });
+
+  // Load default example
+  inp.value = 'a + b * c';
+  runParse();
+});
+
+window.addEventListener('resize', ()=>{ if(astRoot) setTimeout(zoomReset,50); });
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SERVER-BACKED PARSE HISTORY  (database/history.json)
+═══════════════════════════════════════════════════════════════════════ */
+const API_BASE = '/api/history';
+
+async function saveToHistory(expression, mode, allTokens, stepCount) {
+  try {
+    // ── INPUT: full token stream ──
+    const tokenList = allTokens
+      .filter(t => t.type !== 'EOF')
+      .map(t => ({ type: t.type, value: t.value, pos: t.pos }));
+
+    // ── OUTPUT: traversal results ──
+    const root = getCurrentRoot();
+    const inOrd = [], preOrd = [], postOrd = [];
+    if (root) {
+      inorder(root, inOrd);
+      preorder(root, preOrd);
+      postorder(root, postOrd);
+    }
+
+    // ── OUTPUT: tree structure (serializable) ──
+    function serializeTree(node) {
+      if (!node) return null;
+      return {
+        label: node.label,
+        kind:  node.kind,
+        prec:  node.prec || null,
+        children: node.children.map(serializeTree)
+      };
+    }
+
+    await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: {
+          expression,
+          mode,
+          tokenCount: tokenList.length,
+          tokens: tokenList
+        },
+        output: {
+          stepCount,
+          tree: serializeTree(root),
+          traversals: {
+            inorder:   inOrd.join(' → '),
+            preorder:  preOrd.join(' → '),
+            postorder: postOrd.join(' → ')
+          }
+        }
+      })
+    });
+    loadHistory();
+  } catch (e) {
+    console.error('saveToHistory error:', e);
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(API_BASE);
+    const items = await res.json();
+    renderHistory(items);
+  } catch (e) {
+    console.error('loadHistory error:', e);
+  }
+}
+
+function renderHistory(items) {
+  const list = document.getElementById('history-list');
+  const countEl = document.getElementById('history-count');
+  if (!items.length) {
+    list.innerHTML = '<div class="history-empty">No history yet — generate a tree to begin.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  countEl.textContent = items.length + (items.length === 1 ? ' entry' : ' entries');
+  list.innerHTML = items.map((item, i) => {
+    const inp = item.input  || {};
+    const out = item.output || {};
+    const trav = out.traversals || {};
+    const d = new Date(item.timestamp);
+    const timeStr = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const dateStr = d.toLocaleDateString([], { month:'short', day:'numeric' });
+    const modeClass = inp.mode === 'precedence' ? 'hi-prec' : 'hi-naive';
+    const modeLabel = inp.mode === 'precedence' ? 'Prec' : 'Naive';
+    return `<div class="history-item" onclick="loadFromHistory(${item.id})" style="animation-delay:${i*0.03}s" title="Input: ${escapeHTML(inp.expression || '')}\n${inp.tokenCount || 0} tokens · ${out.stepCount || 0} steps\nInorder: ${trav.inorder || '—'}">
+      <span class="hi-expr">${escapeHTML(inp.expression || '')}</span>
+      <span class="hi-meta">
+        <span class="hi-mode ${modeClass}">${modeLabel}</span>
+        <span class="hi-time">${dateStr} ${timeStr}</span>
+        <span class="hi-tokens">${inp.tokenCount || 0} tok · ${out.stepCount || 0} steps</span>
+      </span>
+      <button class="hi-del" onclick="event.stopPropagation();deleteHistoryItem(${item.id})" title="Delete">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function loadFromHistory(id) {
+  try {
+    const res = await fetch(API_BASE);
+    const items = await res.json();
+    const record = items.find(e => e.id === id);
+    if (!record || !record.input) return;
+    setMode(record.input.mode);
+    document.getElementById('expr-input').value = record.input.expression;
+    runParse();
+  } catch (e) {
+    console.error('loadFromHistory error:', e);
+  }
+}
+
+async function deleteHistoryItem(id) {
+  try {
+    await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    console.error('deleteHistoryItem error:', e);
+  }
+}
+
+async function clearHistory() {
+  try {
+    await fetch(API_BASE, { method: 'DELETE' });
+    loadHistory();
+  } catch (e) {
+    console.error('clearHistory error:', e);
+  }
+}
+
+// Load history on startup
+loadHistory();
+</script>
+</body>
+</html>

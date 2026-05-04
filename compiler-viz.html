@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compiler Syntax Analyzer — Interactive Visualization</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link href="styles.css" rel="stylesheet">
+<style>
+  .topbar { background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; z-index: 10; position: relative; }
+  .input-group { flex: 1; min-width: 220px; display: flex; gap: 8px; align-items: center; }
+  .expr-wrap { flex: 1; position: relative; }
+  .expr-wrap input { width: 100%; background: var(--bg3); border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 36px 10px 14px; color: var(--text); font-size: 14px; font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color .2s, box-shadow .2s; }
+  .expr-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .expr-wrap input.has-error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(255,107,107,.12); }
+  .expr-wrap .clear-x { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; line-height: 1; padding: 4px; border-radius: 4px; }
+  .expr-wrap .clear-x:hover { color: var(--text); }
+  .workspace { flex: 1; display: grid; grid-template-columns: 420px 1fr; overflow: hidden; }
+  @media(max-width: 800px) { .workspace { grid-template-columns: 1fr; grid-template-rows: 260px 1fr; } }
+  .sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 16px; }
+  .panel-title { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text2); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .panel-title .pip { width: 8px; height: 8px; border-radius: 50%; }
+  
+  .token-stream { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+  .tok-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: var(--r); background: var(--bg3); border: 1px solid var(--border); transition: all .2s; }
+  .tok-row.tok-current { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber), 0 0 12px rgba(255,217,61,.2); transform: translateX(3px); }
+  .tok-idx { font-size: 10px; color: var(--text3); min-width: 16px; text-align: right; font-family: monospace; }
+  .tok-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; flex: 1; }
+  
+  .step-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .step-desc { font-size: 12px; color: var(--text2); min-height: 36px; line-height: 1.5; background: var(--bg3); border-radius: var(--r); padding: 8px 12px; border: 1px solid var(--border); }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--amber); border-radius: 2px; transition: width .3s; }
+  
+  .stack-wrap { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
+  .stack-frame { font-size: 12px; font-family: monospace; padding: 6px 10px; border-radius: var(--r); background: var(--bg3); border: 1px solid var(--border); color: var(--text2); display: flex; align-items: center; gap: 8px; }
+  .stack-frame.active-frame { background: var(--accent-glow); border-color: var(--accent); color: var(--accent2); }
+  
+  .viz-area { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); position: relative; }
+  .viz-bar { background: var(--glass); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); padding: 10px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; z-index: 10; }
+  .view-tabs { display: flex; gap: 4px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 4px; }
+  .v-tab { padding: 6px 16px; font-size: 12px; font-weight: 600; border-radius: 4px; cursor: pointer; color: var(--text3); border: none; background: none; transition: all .2s; }
+  .v-tab.active { background: var(--bg2); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .zoom-group { display: flex; gap: 4px; margin-left: auto; }
+  .zb { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); font-size: 16px; font-weight: 700; user-select: none; transition: all .2s; }
+  .zb:hover { background: var(--bg4); color: var(--text); }
+  
+  .empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+  .empty-icon { font-size: 48px; opacity: .2; margin-bottom: 16px; line-height: 1; }
+  .empty p { color: var(--text3); font-size: 14px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    <div class="logo-text">
+      <h1>CompilerViz</h1>
+      <span>Syntax Analysis Explorer</span>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <div class="expr-wrap">
+      <input id="expr-input" type="text" placeholder="e.g.  int a = 10;  or  for(int i=0; i<5; i++) { ... }" autocomplete="off" spellcheck="false">
+      <button class="clear-x" onclick="clearAll()" title="Clear">×</button>
+    </div>
+    <button class="btn btn-primary" onclick="runParse()">▶ Generate</button>
+  </div>
+  <a href="index.html" class="nav-link" style="margin-left:auto">6-Phase Compiler</a>
+  <a href="database-viewer.html" class="nav-link">Database</a>
+</div>
+
+<div class="chips" style="padding: 10px 24px;">
+  <span style="font-size:12px;font-weight:700;color:var(--text3);align-self:center">Try:</span>
+  <div class="chip" onclick="loadSample('a + b * c')">a + b * c</div>
+  <div class="chip" onclick="loadSample('(a + b) * c')">(a + b) * c</div>
+  <div class="chip" onclick="loadSample('int a = 10;')">int a = 10;</div>
+  <div class="chip" onclick="loadSample('for(int i=0; i<5; i++) {}')">For loop</div>
+  <div class="chip" onclick="loadSample('if(a == b) { c = 1; } else { c = 2; }')">If-Else</div>
+  <div class="chip" onclick="loadSample('printf(\&quot;Hello \%d\\n\&quot;, x);')">printf call</div>
+</div>
+
+<div class="workspace">
+  <div class="sidebar">
+    <div class="sidebar-scroll">
+      
+      <!-- Token Stream -->
+      <div class="panel">
+        <div class="panel-title">
+          <span class="pip" style="background:var(--terracotta)"></span>
+          Token Stream
+          <span id="tok-count" style="margin-left:auto;font-size:10px;background:var(--bg4);padding:2px 8px;border-radius:10px;color:var(--text2)"></span>
+        </div>
+        <div class="token-stream" id="token-list">
+          <div style="color:var(--text3);font-size:12px">Enter an expression above…</div>
+        </div>
+      </div>
+
+      <!-- Step Controls -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--amber)"></span>Step-by-Step Parser</div>
+        <div class="step-row">
+          <button class="btn-ghost" onclick="prevStep()">◀ Prev</button>
+          <button class="btn-ghost" onclick="nextStep()">Next ▶</button>
+          <button class="btn-ghost" onclick="togglePlay()" id="btn-play">▶ Play</button>
+          <button class="btn-ghost" onclick="resetSteps()">↺</button>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="step-progress" style="width:0%"></div></div>
+        <div class="step-desc" id="step-desc" style="margin-top:10px;">Generate a tree to begin stepping through the parse process.</div>
+      </div>
+
+      <!-- Call Stack -->
+      <div class="panel">
+        <div class="panel-title"><span class="pip" style="background:var(--cyan)"></span>Parser Call Stack</div>
+        <div class="stack-wrap" id="call-stack">
+          <div style="color:var(--text3);font-size:11px">—</div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <div class="viz-area">
+    <div class="viz-bar">
+      <div class="view-tabs">
+        <button class="v-tab active" onclick="setView('ast', this)">Abstract Syntax Tree</button>
+      </div>
+      <div class="zoom-group">
+        <div class="zb" onclick="zoomBy(1.2)" title="Zoom in">+</div>
+        <div class="zb" onclick="zoomBy(.833)" title="Zoom out">−</div>
+        <div class="zb" onclick="zoomReset()" title="Fit to screen">⌂</div>
+      </div>
+    </div>
+
+    <div class="svg-wrap" id="svg-wrap" style="flex:1;position:relative;">
+      <svg id="main-svg"><g id="tree-root"></g></svg>
+      <div class="empty" id="empty-state">
+        <div class="empty-icon">⬡</div>
+        <p>Enter a C expression or statement<br>and click <strong>▶ Generate</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let tokens = [];
+let astData = null;
+let parseSteps = [];
+let stepIdx = -1;
+let playTimer = null;
+let svgSel, gSel, zoom;
+
+function loadSample(code) {
+  document.getElementById('expr-input').value = code;
+  runParse();
+}
+
+function clearAll() {
+  document.getElementById('expr-input').value = '';
+  tokens = []; astData = null; parseSteps = []; stepIdx = -1;
+  document.getElementById('empty-state').style.display = '';
+  if (gSel) gSel.selectAll('*').remove();
+  renderTokens(-1);
+  resetSteps();
+}
+
+async function runParse() {
+  const code = document.getElementById('expr-input').value.trim();
+  if (!code) { clearAll(); return; }
+  
+  stopPlay();
+  stepIdx = -1;
+  
+  try {
+    const res = await fetch('/steps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alert("Error: " + (data.error || "Failed to parse"));
+      return;
+    }
+    
+    tokens = data.tokens || [];
+    astData = data.ast;
+    parseSteps = data.steps || [];
+    
+    document.getElementById('empty-state').style.display = 'none';
+    renderTokens(-1);
+    
+    // Animate Tree
+    renderTree(astData);
+    setTimeout(zoomReset, 50);
+    resetSteps();
+    
+    // History Tracking logic automatically triggered by /steps no longer done by default in backend.
+    // It's okay, we can log it manually if needed, or rely on index.html's compiler logging.
+    
+  } catch (err) {
+    alert("Connection error.");
+  }
+}
+
+// Rendering Logic
+function getBadge(type) {
+  if (type === 'KEYWORD') return 'b-kw';
+  if (type === 'IDENT') return 'b-id';
+  if (['NUMBER','FLOAT_LITERAL'].includes(type)) return 'b-lit';
+  if (['STRING','CHAR'].includes(type)) return 'b-str';
+  if (type === 'OP') return 'b-op';
+  if (type === 'DELIMITER') return 'b-del';
+  if (type === 'PREPROCESSOR') return 'b-pre';
+  return '';
+}
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderTokens(currentIdx) {
+  const list = document.getElementById('token-list');
+  const vis = tokens.filter(t => t.type !== 'EOF');
+  if (!vis.length) { list.innerHTML = '<div style="color:var(--text3);font-size:12px">—</div>'; return; }
+  document.getElementById('tok-count').textContent = vis.length + ' tokens';
+  
+  list.innerHTML = vis.map((t, i) => {
+    const col = t.type==='OP'?'var(--terracotta)':t.type==='NUMBER'?'var(--cyan)':t.type==='IDENT'?'var(--green)':t.type==='KEYWORD'?'#ff87ab':'var(--purple)';
+    const cur = (currentIdx >= 0 && i === currentIdx) ? ' tok-current' : '';
+    return `<div class="tok-row${cur}">
+      <span class="tok-idx">${i}</span>
+      <span class="tok-val" style="color:${col}">${escapeHtml(t.value)}</span>
+      <span class="badge ${getBadge(t.type)}">${t.type}</span>
+    </div>`;
+  }).join('');
+  
+  if (currentIdx >= 0) {
+    const rows = list.querySelectorAll('.tok-row');
+    if (rows[currentIdx]) rows[currentIdx].scrollIntoView({ block:'nearest' });
+  }
+}
+
+let treeNodesArr = [];
+
+function updateStep() {
+  const n = parseSteps.length;
+  if (n === 0) return;
+  const idx = Math.max(0, stepIdx);
+  const step = parseSteps[idx];
+
+  document.getElementById('step-progress').style.width = ((idx+1)/n*100)+'%';
+  document.getElementById('step-desc').innerHTML = `<span style="color:var(--text3);font-size:10px;font-weight:bold;">Step ${idx+1} / ${n}</span><br>${step.desc}`;
+  renderTokens(step.tokenIdx);
+
+  const stackEl = document.getElementById('call-stack');
+  if (step.stack && step.stack.length) {
+    stackEl.innerHTML = [...step.stack].reverse().map((f,i)=> `<div class="stack-frame${i===0?' active-frame':''}"><span class="frame-icon">${i===0?'▶':'  '}</span>${f}()</div>`).join('');
+  } else {
+    stackEl.innerHTML = '<div style="color:var(--text3);font-size:11px">—</div>';
+  }
+
+  if (treeNodesArr.length > 0 && gSel) {
+    const activeNodeIdx = Math.floor((idx / n) * treeNodesArr.length);
+    
+    gSel.selectAll('.node rect')
+      .transition().duration(300)
+      .attr('stroke', d => d.data._animIndex === activeNodeIdx ? 'var(--amber)' : getNodeColor(d.data.type))
+      .attr('stroke-width', d => d.data._animIndex === activeNodeIdx ? 4 : 2)
+      .attr('transform', d => d.data._animIndex === activeNodeIdx ? 'scale(1.1)' : 'scale(1)')
+      .style('opacity', d => d.data._animIndex <= activeNodeIdx ? 1 : 0);
+
+    gSel.selectAll('.node text')
+      .transition().duration(300)
+      .style('opacity', d => d.data._animIndex <= activeNodeIdx ? 1 : 0);
+
+    gSel.selectAll('.link')
+      .transition().duration(300)
+      .style('opacity', d => d.target.data._animIndex <= activeNodeIdx ? 1 : 0)
+      .attr('stroke', d => d.target.data._animIndex === activeNodeIdx ? 'var(--amber)' : 'var(--border2)')
+      .attr('stroke-width', d => d.target.data._animIndex === activeNodeIdx ? 3 : 2);
+  }
+}
+
+function nextStep() { if (stepIdx < parseSteps.length-1) { stepIdx++; updateStep(); } }
+function prevStep() { if (stepIdx > 0) { stepIdx--; updateStep(); } }
+function resetSteps() {
+  stopPlay(); stepIdx = -1;
+  document.getElementById('step-desc').textContent = 'Click Next ▶ to step through the parse process.';
+  document.getElementById('step-progress').style.width='0%';
+  document.getElementById('call-stack').innerHTML='<div style="color:var(--text3);font-size:11px">—</div>';
+  renderTokens(-1);
+}
+function togglePlay() {
+  if (playTimer) { stopPlay(); return; }
+  document.getElementById('btn-play').textContent = '⏸ Pause';
+  if (stepIdx >= parseSteps.length-1) stepIdx = -1;
+  playTimer = setInterval(()=>{
+    if (stepIdx < parseSteps.length-1) { nextStep(); }
+    else stopPlay();
+  }, 1200);
+}
+function stopPlay() {
+  if (playTimer) { clearInterval(playTimer); playTimer=null; }
+  document.getElementById('btn-play').textContent = '▶ Play';
+}
+
+function initSVG() {
+  svgSel = d3.select('#main-svg');
+  gSel = d3.select('#tree-root');
+  zoom = d3.zoom().scaleExtent([0.1, 4]).on('zoom', e => gSel.attr('transform', e.transform));
+  svgSel.call(zoom).on('dblclick.zoom', null);
+}
+
+function zoomBy(f) {
+  const w = document.getElementById('svg-wrap').clientWidth;
+  const h = document.getElementById('svg-wrap').clientHeight;
+  svgSel.transition().duration(250).call(zoom.scaleBy, f, [w/2, h/2]);
+}
+
+function zoomReset() {
+  if (!astData) return;
+  const w = document.getElementById('svg-wrap').clientWidth;
+  const h = document.getElementById('svg-wrap').clientHeight;
+  svgSel.transition().duration(400).call(zoom.transform, d3.zoomIdentity.translate(w/2, 50).scale(0.8));
+}
+
+function getNodeColor(t) {
+  if (!t) return 'var(--text3)';
+  if (t.includes('Decl')) return 'var(--accent2)';
+  if (t.includes('Expr')||t==='Literal'||t==='Identifier') return 'var(--green)';
+  if (t.includes('Stmt')||t==='Block') return 'var(--terracotta)';
+  return 'var(--text3)';
+}
+
+function renderTree(rootData) {
+  if (!gSel) return;
+  gSel.selectAll('*').remove();
+  if (!rootData) return;
+  
+  const root = d3.hierarchy(rootData, d => d.children);
+  const treeLayout = d3.tree().nodeSize([140, 80]).separation((a,b)=>a.parent==b.parent?1.1:1.3);
+  treeLayout(root);
+
+  treeNodesArr = [];
+  root.eachBefore(d => { d.data._animIndex = treeNodesArr.length; treeNodesArr.push(d); });
+
+  gSel.selectAll('.link').data(root.links()).join('path').attr('class','link')
+    .attr('d', d3.linkVertical().x(d=>d.x).y(d=>d.y))
+    .attr('fill', 'none').attr('stroke', 'var(--border2)').attr('stroke-width', 2)
+    .style('opacity', 0);
+
+  const nodes = gSel.selectAll('.node').data(root.descendants()).join('g').attr('class','node')
+    .attr('transform', d=>`translate(${d.x},${d.y})`);
+
+  nodes.append('rect')
+    .attr('x', -60).attr('y', -20)
+    .attr('width', 120).attr('height', 40)
+    .attr('rx', 8).attr('ry', 8)
+    .attr('fill', 'var(--bg2)')
+    .attr('stroke', d => getNodeColor(d.data.type))
+    .attr('stroke-width', 2)
+    .style('opacity', 0);
+   
+  nodes.append('text')
+    .attr('font-family', "'JetBrains Mono', monospace")
+    .attr('font-size', '11px')
+    .attr('fill', 'var(--text)')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'middle')
+    .text(d => d.data.label.length > 14 ? d.data.label.substring(0,12)+'...' : d.data.label)
+    .attr('dy',2)
+    .style('opacity', 0);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSVG();
+  document.getElementById('expr-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runParse();
+  });
+});
+</script>
+</body>
+</html>

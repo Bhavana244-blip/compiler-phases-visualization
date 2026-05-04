@@ -1,0 +1,3122 @@
+[
+  {
+    "id": 1,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777882415710
+  },
+  {
+    "id": 2,
+    "input": {
+      "expression": "(a + b) * c",
+      "mode": "precedence",
+      "tokenCount": 7,
+      "tokens": [
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 0
+        },
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 1
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 3
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 5
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 6
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 8
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 10
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 17,
+      "tree": {
+        "label": "*",
+        "kind": "op",
+        "prec": "high (2)",
+        "children": [
+          {
+            "label": "+",
+            "kind": "op",
+            "prec": "low (1)",
+            "children": [
+              {
+                "label": "a",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          },
+          {
+            "label": "c",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "* → + → a → b → c",
+        "postorder": "a → b → + → c → *"
+      }
+    },
+    "timestamp": 1777882432737
+  },
+  {
+    "id": 3,
+    "input": {
+      "expression": "a + b * c - d / e",
+      "mode": "precedence",
+      "tokenCount": 9,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        },
+        {
+          "type": "OP",
+          "value": "-",
+          "pos": 10
+        },
+        {
+          "type": "IDENT",
+          "value": "d",
+          "pos": 12
+        },
+        {
+          "type": "OP",
+          "value": "/",
+          "pos": 14
+        },
+        {
+          "type": "IDENT",
+          "value": "e",
+          "pos": 16
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 19,
+      "tree": {
+        "label": "-",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "+",
+            "kind": "op",
+            "prec": "low (1)",
+            "children": [
+              {
+                "label": "a",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "*",
+                "kind": "op",
+                "prec": "high (2)",
+                "children": [
+                  {
+                    "label": "b",
+                    "kind": "var",
+                    "prec": null,
+                    "children": []
+                  },
+                  {
+                    "label": "c",
+                    "kind": "var",
+                    "prec": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "/",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "d",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "e",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c → - → d → / → e",
+        "preorder": "- → + → a → * → b → c → / → d → e",
+        "postorder": "a → b → c → * → + → d → e → / → -"
+      }
+    },
+    "timestamp": 1777882435710
+  },
+  {
+    "id": 4,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777882960841
+  },
+  {
+    "id": 5,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777883170282
+  },
+  {
+    "id": 6,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777883290452
+  },
+  {
+    "id": 7,
+    "input": {
+      "expression": "#include <stdio.h>\nint main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n                printf(\"  \");\n        }\n        printf(\"\\n\");\n    }\n    return 0;\n}",
+      "mode": "precedence",
+      "tokenCount": 83,
+      "tokens": [
+        {
+          "type": "PREP",
+          "value": "#include <stdio.h>",
+          "pos": 0
+        },
+        {
+          "type": "KW",
+          "value": "int",
+          "pos": 19
+        },
+        {
+          "type": "IDENT",
+          "value": "main",
+          "pos": 23
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 27
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 28
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 30
+        },
+        {
+          "type": "KW",
+          "value": "int",
+          "pos": 36
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 40
+        },
+        {
+          "type": "PUNC",
+          "value": ",",
+          "pos": 41
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 43
+        },
+        {
+          "type": "PUNC",
+          "value": ",",
+          "pos": 44
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 46
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 48
+        },
+        {
+          "type": "NUMBER",
+          "value": "5",
+          "pos": 50
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 51
+        },
+        {
+          "type": "KW",
+          "value": "for",
+          "pos": 57
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 60
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 61
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 63
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 65
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 66
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 68
+        },
+        {
+          "type": "OP",
+          "value": "<=",
+          "pos": 70
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 73
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 74
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 76
+        },
+        {
+          "type": "OP",
+          "value": "++",
+          "pos": 77
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 79
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 81
+        },
+        {
+          "type": "KW",
+          "value": "for",
+          "pos": 91
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 94
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 95
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 97
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 99
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 100
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 102
+        },
+        {
+          "type": "OP",
+          "value": "<=",
+          "pos": 104
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 107
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 108
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 110
+        },
+        {
+          "type": "OP",
+          "value": "++",
+          "pos": 111
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 113
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 115
+        },
+        {
+          "type": "KW",
+          "value": "if",
+          "pos": 129
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 131
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 132
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 134
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 137
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 139
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 142
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 144
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 147
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 149
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 152
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 154
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 157
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 159
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 162
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 164
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 167
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 168
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 186
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 192
+        },
+        {
+          "type": "STR",
+          "value": "\"* \"",
+          "pos": 193
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 197
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 198
+        },
+        {
+          "type": "KW",
+          "value": "else",
+          "pos": 212
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 233
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 239
+        },
+        {
+          "type": "STR",
+          "value": "\"  \"",
+          "pos": 240
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 244
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 245
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 255
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 265
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 271
+        },
+        {
+          "type": "STR",
+          "value": "\"\\n\"",
+          "pos": 272
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 276
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 277
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 283
+        },
+        {
+          "type": "KW",
+          "value": "return",
+          "pos": 289
+        },
+        {
+          "type": "NUMBER",
+          "value": "0",
+          "pos": 296
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 297
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 299
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 195,
+      "tree": {
+        "label": "seq",
+        "kind": "op",
+        "prec": "seq",
+        "children": [
+          {
+            "label": "seq",
+            "kind": "op",
+            "prec": "seq",
+            "children": [
+              {
+                "label": "seq",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": "seq",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": "#include <stdio.h>",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      },
+                      {
+                        "label": "int",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "label": "main",
+                    "kind": "var",
+                    "prec": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "seq",
+            "kind": "op",
+            "prec": "seq",
+            "children": [
+              {
+                "label": ";",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": ",",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": ",",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": "seq",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": "int",
+                                "kind": "op",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "label": "j",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "label": "=",
+                        "kind": "op",
+                        "prec": "low (1)",
+                        "children": [
+                          {
+                            "label": "n",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          },
+                          {
+                            "label": "5",
+                            "kind": "num",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "label": "for",
+                    "kind": "op",
+                    "prec": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "label": "seq",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": ";",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": ";",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": "=",
+                            "kind": "op",
+                            "prec": "low (1)",
+                            "children": [
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "1",
+                                "kind": "num",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "label": "<=",
+                            "kind": "op",
+                            "prec": "low (1)",
+                            "children": [
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "n",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "label": "++",
+                        "kind": "op",
+                        "prec": "low (1)",
+                        "children": [
+                          {
+                            "label": "i",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          },
+                          {
+                            "label": ")",
+                            "kind": "op",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "label": "seq",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": "for",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      },
+                      {
+                        "label": "seq",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": ";",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": ";",
+                                "kind": "op",
+                                "prec": "seq",
+                                "children": [
+                                  {
+                                    "label": "=",
+                                    "kind": "op",
+                                    "prec": "low (1)",
+                                    "children": [
+                                      {
+                                        "label": "j",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      },
+                                      {
+                                        "label": "1",
+                                        "kind": "num",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "label": "<=",
+                                    "kind": "op",
+                                    "prec": "low (1)",
+                                    "children": [
+                                      {
+                                        "label": "j",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      },
+                                      {
+                                        "label": "n",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "label": "++",
+                                "kind": "op",
+                                "prec": "low (1)",
+                                "children": [
+                                  {
+                                    "label": "j",
+                                    "kind": "var",
+                                    "prec": null,
+                                    "children": []
+                                  },
+                                  {
+                                    "label": ")",
+                                    "kind": "op",
+                                    "prec": null,
+                                    "children": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "label": ";",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": "seq",
+                                "kind": "op",
+                                "prec": "seq",
+                                "children": [
+                                  {
+                                    "label": "seq",
+                                    "kind": "op",
+                                    "prec": "seq",
+                                    "children": [
+                                      {
+                                        "label": ";",
+                                        "kind": "op",
+                                        "prec": "seq",
+                                        "children": [
+                                          {
+                                            "label": "seq",
+                                            "kind": "op",
+                                            "prec": "seq",
+                                            "children": [
+                                              {
+                                                "label": "seq",
+                                                "kind": "op",
+                                                "prec": "seq",
+                                                "children": [
+                                                  {
+                                                    "label": ";",
+                                                    "kind": "op",
+                                                    "prec": "seq",
+                                                    "children": [
+                                                      {
+                                                        "label": "seq",
+                                                        "kind": "op",
+                                                        "prec": "seq",
+                                                        "children": [
+                                                          {
+                                                            "label": "seq",
+                                                            "kind": "op",
+                                                            "prec": "seq",
+                                                            "children": [
+                                                              {
+                                                                "label": ";",
+                                                                "kind": "op",
+                                                                "prec": "seq",
+                                                                "children": [
+                                                                  {
+                                                                    "label": "seq",
+                                                                    "kind": "op",
+                                                                    "prec": "seq",
+                                                                    "children": [
+                                                                      {
+                                                                        "label": "seq",
+                                                                        "kind": "op",
+                                                                        "prec": "seq",
+                                                                        "children": [
+                                                                          {
+                                                                            "label": "seq",
+                                                                            "kind": "op",
+                                                                            "prec": "seq",
+                                                                            "children": [
+                                                                              {
+                                                                                "label": "if",
+                                                                                "kind": "op",
+                                                                                "prec": null,
+                                                                                "children": []
+                                                                              },
+                                                                              {
+                                                                                "label": "==",
+                                                                                "kind": "op",
+                                                                                "prec": "low (1)",
+                                                                                "children": [
+                                                                                  {
+                                                                                    "label": "||",
+                                                                                    "kind": "op",
+                                                                                    "prec": "low (1)",
+                                                                                    "children": [
+                                                                                      {
+                                                                                        "label": "==",
+                                                                                        "kind": "op",
+                                                                                        "prec": "low (1)",
+                                                                                        "children": [
+                                                                                          {
+                                                                                            "label": "||",
+                                                                                            "kind": "op",
+                                                                                            "prec": "low (1)",
+                                                                                            "children": [
+                                                                                              {
+                                                                                                "label": "==",
+                                                                                                "kind": "op",
+                                                                                                "prec": "low (1)",
+                                                                                                "children": [
+                                                                                                  {
+                                                                                                    "label": "||",
+                                                                                                    "kind": "op",
+                                                                                                    "prec": "low (1)",
+                                                                                                    "children": [
+                                                                                                      {
+                                                                                                        "label": "==",
+                                                                                                        "kind": "op",
+                                                                                                        "prec": "low (1)",
+                                                                                                        "children": [
+                                                                                                          {
+                                                                                                            "label": "i",
+                                                                                                            "kind": "var",
+                                                                                                            "prec": null,
+                                                                                                            "children": []
+                                                                                                          },
+                                                                                                          {
+                                                                                                            "label": "1",
+                                                                                                            "kind": "num",
+                                                                                                            "prec": null,
+                                                                                                            "children": []
+                                                                                                          }
+                                                                                                        ]
+                                                                                                      },
+                                                                                                      {
+                                                                                                        "label": "i",
+                                                                                                        "kind": "var",
+                                                                                                        "prec": null,
+                                                                                                        "children": []
+                                                                                                      }
+                                                                                                    ]
+                                                                                                  },
+                                                                                                  {
+                                                                                                    "label": "n",
+                                                                                                    "kind": "var",
+                                                                                                    "prec": null,
+                                                                                                    "children": []
+                                                                                                  }
+                                                                                                ]
+                                                                                              },
+                                                                                              {
+                                                                                                "label": "j",
+                                                                                                "kind": "var",
+                                                                                                "prec": null,
+                                                                                                "children": []
+                                                                                              }
+                                                                                            ]
+                                                                                          },
+                                                                                          {
+                                                                                            "label": "1",
+                                                                                            "kind": "num",
+                                                                                            "prec": null,
+                                                                                            "children": []
+                                                                                          }
+                                                                                        ]
+                                                                                      },
+                                                                                      {
+                                                                                        "label": "j",
+                                                                                        "kind": "var",
+                                                                                        "prec": null,
+                                                                                        "children": []
+                                                                                      }
+                                                                                    ]
+                                                                                  },
+                                                                                  {
+                                                                                    "label": "n",
+                                                                                    "kind": "var",
+                                                                                    "prec": null,
+                                                                                    "children": []
+                                                                                  }
+                                                                                ]
+                                                                              }
+                                                                            ]
+                                                                          },
+                                                                          {
+                                                                            "label": "printf",
+                                                                            "kind": "var",
+                                                                            "prec": null,
+                                                                            "children": []
+                                                                          }
+                                                                        ]
+                                                                      },
+                                                                      {
+                                                                        "label": "\"* \"",
+                                                                        "kind": "var",
+                                                                        "prec": null,
+                                                                        "children": []
+                                                                      }
+                                                                    ]
+                                                                  },
+                                                                  {
+                                                                    "label": "else",
+                                                                    "kind": "op",
+                                                                    "prec": null,
+                                                                    "children": []
+                                                                  }
+                                                                ]
+                                                              },
+                                                              {
+                                                                "label": "printf",
+                                                                "kind": "var",
+                                                                "prec": null,
+                                                                "children": []
+                                                              }
+                                                            ]
+                                                          },
+                                                          {
+                                                            "label": "\"  \"",
+                                                            "kind": "var",
+                                                            "prec": null,
+                                                            "children": []
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "label": "}",
+                                                        "kind": "op",
+                                                        "prec": null,
+                                                        "children": []
+                                                      }
+                                                    ]
+                                                  },
+                                                  {
+                                                    "label": "printf",
+                                                    "kind": "var",
+                                                    "prec": null,
+                                                    "children": []
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "label": "\"\\n\"",
+                                                "kind": "var",
+                                                "prec": null,
+                                                "children": []
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "label": "}",
+                                            "kind": "op",
+                                            "prec": null,
+                                            "children": []
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "label": "return",
+                                        "kind": "op",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "label": "0",
+                                    "kind": "num",
+                                    "prec": null,
+                                    "children": []
+                                  }
+                                ]
+                              },
+                              {
+                                "label": "}",
+                                "kind": "op",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "#include <stdio.h> → seq → int → seq → main → seq → seq → int → seq → i → , → j → , → n → = → 5 → ; → for → seq → i → = → 1 → ; → i → <= → n → ; → i → ++ → ) → seq → for → seq → j → = → 1 → ; → j → <= → n → ; → j → ++ → ) → seq → if → seq → i → == → 1 → || → i → == → n → || → j → == → 1 → || → j → == → n → seq → printf → seq → \"* \" → ; → else → seq → printf → seq → \"  \" → ; → } → seq → printf → seq → \"\\n\" → ; → } → seq → return → seq → 0 → ; → }",
+        "preorder": "seq → seq → seq → seq → #include <stdio.h> → int → main → seq → ; → , → , → seq → int → i → j → = → n → 5 → for → seq → ; → ; → = → i → 1 → <= → i → n → ++ → i → ) → seq → for → seq → ; → ; → = → j → 1 → <= → j → n → ++ → j → ) → ; → seq → seq → ; → seq → seq → ; → seq → seq → ; → seq → seq → seq → if → == → || → == → || → == → || → == → i → 1 → i → n → j → 1 → j → n → printf → \"* \" → else → printf → \"  \" → } → printf → \"\\n\" → } → return → 0 → }",
+        "postorder": "#include <stdio.h> → int → seq → main → seq → seq → int → i → seq → j → , → n → 5 → = → , → for → ; → i → 1 → = → i → n → <= → ; → i → ) → ++ → ; → for → j → 1 → = → j → n → <= → ; → j → ) → ++ → ; → if → i → 1 → == → i → || → n → == → j → || → 1 → == → j → || → n → == → seq → printf → seq → \"* \" → seq → else → ; → printf → seq → \"  \" → seq → } → ; → printf → seq → \"\\n\" → seq → } → ; → return → seq → 0 → seq → } → ; → seq → seq → seq → seq → seq"
+      }
+    },
+    "timestamp": 1777883372043
+  },
+  {
+    "id": 8,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777884316484
+  },
+  {
+    "id": 9,
+    "input": {
+      "expression": "#include <stdio.h>\nint main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n                printf(\"  \");\n        }\n        printf(\"\\n\");\n    }\n    return 0;\n}",
+      "mode": "precedence",
+      "tokenCount": 83,
+      "tokens": [
+        {
+          "type": "PREP",
+          "value": "#include <stdio.h>",
+          "pos": 0
+        },
+        {
+          "type": "KW",
+          "value": "int",
+          "pos": 19
+        },
+        {
+          "type": "IDENT",
+          "value": "main",
+          "pos": 23
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 27
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 28
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 30
+        },
+        {
+          "type": "KW",
+          "value": "int",
+          "pos": 36
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 40
+        },
+        {
+          "type": "PUNC",
+          "value": ",",
+          "pos": 41
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 43
+        },
+        {
+          "type": "PUNC",
+          "value": ",",
+          "pos": 44
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 46
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 48
+        },
+        {
+          "type": "NUMBER",
+          "value": "5",
+          "pos": 50
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 51
+        },
+        {
+          "type": "KW",
+          "value": "for",
+          "pos": 57
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 60
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 61
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 63
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 65
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 66
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 68
+        },
+        {
+          "type": "OP",
+          "value": "<=",
+          "pos": 70
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 73
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 74
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 76
+        },
+        {
+          "type": "OP",
+          "value": "++",
+          "pos": 77
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 79
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 81
+        },
+        {
+          "type": "KW",
+          "value": "for",
+          "pos": 91
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 94
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 95
+        },
+        {
+          "type": "OP",
+          "value": "=",
+          "pos": 97
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 99
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 100
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 102
+        },
+        {
+          "type": "OP",
+          "value": "<=",
+          "pos": 104
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 107
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 108
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 110
+        },
+        {
+          "type": "OP",
+          "value": "++",
+          "pos": 111
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 113
+        },
+        {
+          "type": "PUNC",
+          "value": "{",
+          "pos": 115
+        },
+        {
+          "type": "KW",
+          "value": "if",
+          "pos": 129
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 131
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 132
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 134
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 137
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 139
+        },
+        {
+          "type": "IDENT",
+          "value": "i",
+          "pos": 142
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 144
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 147
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 149
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 152
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 154
+        },
+        {
+          "type": "NUMBER",
+          "value": "1",
+          "pos": 157
+        },
+        {
+          "type": "OP",
+          "value": "||",
+          "pos": 159
+        },
+        {
+          "type": "IDENT",
+          "value": "j",
+          "pos": 162
+        },
+        {
+          "type": "OP",
+          "value": "==",
+          "pos": 164
+        },
+        {
+          "type": "IDENT",
+          "value": "n",
+          "pos": 167
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 168
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 186
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 192
+        },
+        {
+          "type": "STR",
+          "value": "\"* \"",
+          "pos": 193
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 197
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 198
+        },
+        {
+          "type": "KW",
+          "value": "else",
+          "pos": 212
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 233
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 239
+        },
+        {
+          "type": "STR",
+          "value": "\"  \"",
+          "pos": 240
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 244
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 245
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 255
+        },
+        {
+          "type": "IDENT",
+          "value": "printf",
+          "pos": 265
+        },
+        {
+          "type": "LPAREN",
+          "value": "(",
+          "pos": 271
+        },
+        {
+          "type": "STR",
+          "value": "\"\\n\"",
+          "pos": 272
+        },
+        {
+          "type": "RPAREN",
+          "value": ")",
+          "pos": 276
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 277
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 283
+        },
+        {
+          "type": "KW",
+          "value": "return",
+          "pos": 289
+        },
+        {
+          "type": "NUMBER",
+          "value": "0",
+          "pos": 296
+        },
+        {
+          "type": "PUNC",
+          "value": ";",
+          "pos": 297
+        },
+        {
+          "type": "PUNC",
+          "value": "}",
+          "pos": 299
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 195,
+      "tree": {
+        "label": "seq",
+        "kind": "op",
+        "prec": "seq",
+        "children": [
+          {
+            "label": "seq",
+            "kind": "op",
+            "prec": "seq",
+            "children": [
+              {
+                "label": "seq",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": "seq",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": "#include <stdio.h>",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      },
+                      {
+                        "label": "int",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "label": "main",
+                    "kind": "var",
+                    "prec": null,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "seq",
+            "kind": "op",
+            "prec": "seq",
+            "children": [
+              {
+                "label": ";",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": ",",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": ",",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": "seq",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": "int",
+                                "kind": "op",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "label": "j",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "label": "=",
+                        "kind": "op",
+                        "prec": "low (1)",
+                        "children": [
+                          {
+                            "label": "n",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          },
+                          {
+                            "label": "5",
+                            "kind": "num",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "label": "for",
+                    "kind": "op",
+                    "prec": null,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "label": "seq",
+                "kind": "op",
+                "prec": "seq",
+                "children": [
+                  {
+                    "label": ";",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": ";",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": "=",
+                            "kind": "op",
+                            "prec": "low (1)",
+                            "children": [
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "1",
+                                "kind": "num",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "label": "<=",
+                            "kind": "op",
+                            "prec": "low (1)",
+                            "children": [
+                              {
+                                "label": "i",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              },
+                              {
+                                "label": "n",
+                                "kind": "var",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "label": "++",
+                        "kind": "op",
+                        "prec": "low (1)",
+                        "children": [
+                          {
+                            "label": "i",
+                            "kind": "var",
+                            "prec": null,
+                            "children": []
+                          },
+                          {
+                            "label": ")",
+                            "kind": "op",
+                            "prec": null,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "label": "seq",
+                    "kind": "op",
+                    "prec": "seq",
+                    "children": [
+                      {
+                        "label": "for",
+                        "kind": "op",
+                        "prec": null,
+                        "children": []
+                      },
+                      {
+                        "label": "seq",
+                        "kind": "op",
+                        "prec": "seq",
+                        "children": [
+                          {
+                            "label": ";",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": ";",
+                                "kind": "op",
+                                "prec": "seq",
+                                "children": [
+                                  {
+                                    "label": "=",
+                                    "kind": "op",
+                                    "prec": "low (1)",
+                                    "children": [
+                                      {
+                                        "label": "j",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      },
+                                      {
+                                        "label": "1",
+                                        "kind": "num",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "label": "<=",
+                                    "kind": "op",
+                                    "prec": "low (1)",
+                                    "children": [
+                                      {
+                                        "label": "j",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      },
+                                      {
+                                        "label": "n",
+                                        "kind": "var",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "label": "++",
+                                "kind": "op",
+                                "prec": "low (1)",
+                                "children": [
+                                  {
+                                    "label": "j",
+                                    "kind": "var",
+                                    "prec": null,
+                                    "children": []
+                                  },
+                                  {
+                                    "label": ")",
+                                    "kind": "op",
+                                    "prec": null,
+                                    "children": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "label": ";",
+                            "kind": "op",
+                            "prec": "seq",
+                            "children": [
+                              {
+                                "label": "seq",
+                                "kind": "op",
+                                "prec": "seq",
+                                "children": [
+                                  {
+                                    "label": "seq",
+                                    "kind": "op",
+                                    "prec": "seq",
+                                    "children": [
+                                      {
+                                        "label": ";",
+                                        "kind": "op",
+                                        "prec": "seq",
+                                        "children": [
+                                          {
+                                            "label": "seq",
+                                            "kind": "op",
+                                            "prec": "seq",
+                                            "children": [
+                                              {
+                                                "label": "seq",
+                                                "kind": "op",
+                                                "prec": "seq",
+                                                "children": [
+                                                  {
+                                                    "label": ";",
+                                                    "kind": "op",
+                                                    "prec": "seq",
+                                                    "children": [
+                                                      {
+                                                        "label": "seq",
+                                                        "kind": "op",
+                                                        "prec": "seq",
+                                                        "children": [
+                                                          {
+                                                            "label": "seq",
+                                                            "kind": "op",
+                                                            "prec": "seq",
+                                                            "children": [
+                                                              {
+                                                                "label": ";",
+                                                                "kind": "op",
+                                                                "prec": "seq",
+                                                                "children": [
+                                                                  {
+                                                                    "label": "seq",
+                                                                    "kind": "op",
+                                                                    "prec": "seq",
+                                                                    "children": [
+                                                                      {
+                                                                        "label": "seq",
+                                                                        "kind": "op",
+                                                                        "prec": "seq",
+                                                                        "children": [
+                                                                          {
+                                                                            "label": "seq",
+                                                                            "kind": "op",
+                                                                            "prec": "seq",
+                                                                            "children": [
+                                                                              {
+                                                                                "label": "if",
+                                                                                "kind": "op",
+                                                                                "prec": null,
+                                                                                "children": []
+                                                                              },
+                                                                              {
+                                                                                "label": "==",
+                                                                                "kind": "op",
+                                                                                "prec": "low (1)",
+                                                                                "children": [
+                                                                                  {
+                                                                                    "label": "||",
+                                                                                    "kind": "op",
+                                                                                    "prec": "low (1)",
+                                                                                    "children": [
+                                                                                      {
+                                                                                        "label": "==",
+                                                                                        "kind": "op",
+                                                                                        "prec": "low (1)",
+                                                                                        "children": [
+                                                                                          {
+                                                                                            "label": "||",
+                                                                                            "kind": "op",
+                                                                                            "prec": "low (1)",
+                                                                                            "children": [
+                                                                                              {
+                                                                                                "label": "==",
+                                                                                                "kind": "op",
+                                                                                                "prec": "low (1)",
+                                                                                                "children": [
+                                                                                                  {
+                                                                                                    "label": "||",
+                                                                                                    "kind": "op",
+                                                                                                    "prec": "low (1)",
+                                                                                                    "children": [
+                                                                                                      {
+                                                                                                        "label": "==",
+                                                                                                        "kind": "op",
+                                                                                                        "prec": "low (1)",
+                                                                                                        "children": [
+                                                                                                          {
+                                                                                                            "label": "i",
+                                                                                                            "kind": "var",
+                                                                                                            "prec": null,
+                                                                                                            "children": []
+                                                                                                          },
+                                                                                                          {
+                                                                                                            "label": "1",
+                                                                                                            "kind": "num",
+                                                                                                            "prec": null,
+                                                                                                            "children": []
+                                                                                                          }
+                                                                                                        ]
+                                                                                                      },
+                                                                                                      {
+                                                                                                        "label": "i",
+                                                                                                        "kind": "var",
+                                                                                                        "prec": null,
+                                                                                                        "children": []
+                                                                                                      }
+                                                                                                    ]
+                                                                                                  },
+                                                                                                  {
+                                                                                                    "label": "n",
+                                                                                                    "kind": "var",
+                                                                                                    "prec": null,
+                                                                                                    "children": []
+                                                                                                  }
+                                                                                                ]
+                                                                                              },
+                                                                                              {
+                                                                                                "label": "j",
+                                                                                                "kind": "var",
+                                                                                                "prec": null,
+                                                                                                "children": []
+                                                                                              }
+                                                                                            ]
+                                                                                          },
+                                                                                          {
+                                                                                            "label": "1",
+                                                                                            "kind": "num",
+                                                                                            "prec": null,
+                                                                                            "children": []
+                                                                                          }
+                                                                                        ]
+                                                                                      },
+                                                                                      {
+                                                                                        "label": "j",
+                                                                                        "kind": "var",
+                                                                                        "prec": null,
+                                                                                        "children": []
+                                                                                      }
+                                                                                    ]
+                                                                                  },
+                                                                                  {
+                                                                                    "label": "n",
+                                                                                    "kind": "var",
+                                                                                    "prec": null,
+                                                                                    "children": []
+                                                                                  }
+                                                                                ]
+                                                                              }
+                                                                            ]
+                                                                          },
+                                                                          {
+                                                                            "label": "printf",
+                                                                            "kind": "var",
+                                                                            "prec": null,
+                                                                            "children": []
+                                                                          }
+                                                                        ]
+                                                                      },
+                                                                      {
+                                                                        "label": "\"* \"",
+                                                                        "kind": "var",
+                                                                        "prec": null,
+                                                                        "children": []
+                                                                      }
+                                                                    ]
+                                                                  },
+                                                                  {
+                                                                    "label": "else",
+                                                                    "kind": "op",
+                                                                    "prec": null,
+                                                                    "children": []
+                                                                  }
+                                                                ]
+                                                              },
+                                                              {
+                                                                "label": "printf",
+                                                                "kind": "var",
+                                                                "prec": null,
+                                                                "children": []
+                                                              }
+                                                            ]
+                                                          },
+                                                          {
+                                                            "label": "\"  \"",
+                                                            "kind": "var",
+                                                            "prec": null,
+                                                            "children": []
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "label": "}",
+                                                        "kind": "op",
+                                                        "prec": null,
+                                                        "children": []
+                                                      }
+                                                    ]
+                                                  },
+                                                  {
+                                                    "label": "printf",
+                                                    "kind": "var",
+                                                    "prec": null,
+                                                    "children": []
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "label": "\"\\n\"",
+                                                "kind": "var",
+                                                "prec": null,
+                                                "children": []
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "label": "}",
+                                            "kind": "op",
+                                            "prec": null,
+                                            "children": []
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "label": "return",
+                                        "kind": "op",
+                                        "prec": null,
+                                        "children": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "label": "0",
+                                    "kind": "num",
+                                    "prec": null,
+                                    "children": []
+                                  }
+                                ]
+                              },
+                              {
+                                "label": "}",
+                                "kind": "op",
+                                "prec": null,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "#include <stdio.h> → seq → int → seq → main → seq → seq → int → seq → i → , → j → , → n → = → 5 → ; → for → seq → i → = → 1 → ; → i → <= → n → ; → i → ++ → ) → seq → for → seq → j → = → 1 → ; → j → <= → n → ; → j → ++ → ) → seq → if → seq → i → == → 1 → || → i → == → n → || → j → == → 1 → || → j → == → n → seq → printf → seq → \"* \" → ; → else → seq → printf → seq → \"  \" → ; → } → seq → printf → seq → \"\\n\" → ; → } → seq → return → seq → 0 → ; → }",
+        "preorder": "seq → seq → seq → seq → #include <stdio.h> → int → main → seq → ; → , → , → seq → int → i → j → = → n → 5 → for → seq → ; → ; → = → i → 1 → <= → i → n → ++ → i → ) → seq → for → seq → ; → ; → = → j → 1 → <= → j → n → ++ → j → ) → ; → seq → seq → ; → seq → seq → ; → seq → seq → ; → seq → seq → seq → if → == → || → == → || → == → || → == → i → 1 → i → n → j → 1 → j → n → printf → \"* \" → else → printf → \"  \" → } → printf → \"\\n\" → } → return → 0 → }",
+        "postorder": "#include <stdio.h> → int → seq → main → seq → seq → int → i → seq → j → , → n → 5 → = → , → for → ; → i → 1 → = → i → n → <= → ; → i → ) → ++ → ; → for → j → 1 → = → j → n → <= → ; → j → ) → ++ → ; → if → i → 1 → == → i → || → n → == → j → || → 1 → == → j → || → n → == → seq → printf → seq → \"* \" → seq → else → ; → printf → seq → \"  \" → seq → } → ; → printf → seq → \"\\n\" → seq → } → ; → return → seq → 0 → seq → } → ; → seq → seq → seq → seq → seq"
+      }
+    },
+    "timestamp": 1777884334389
+  },
+  {
+    "id": 10,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777885258521
+  },
+  {
+    "id": 11,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777886120368
+  },
+  {
+    "id": 12,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777886121829
+  },
+  {
+    "id": 13,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777886122846
+  },
+  {
+    "id": 14,
+    "input": {
+      "expression": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+      "mode": "precedence",
+      "tokenCount": 1,
+      "tokens": [
+        {
+          "type": "PREP",
+          "value": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+          "pos": 0
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 5,
+      "tree": {
+        "label": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "kind": "op",
+        "prec": null,
+        "children": []
+      },
+      "traversals": {
+        "inorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "preorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "postorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}"
+      }
+    },
+    "timestamp": 1777886143016
+  },
+  {
+    "id": 15,
+    "input": {
+      "expression": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+      "mode": "precedence",
+      "tokenCount": 1,
+      "tokens": [
+        {
+          "type": "PREP",
+          "value": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+          "pos": 0
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 5,
+      "tree": {
+        "label": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "kind": "op",
+        "prec": null,
+        "children": []
+      },
+      "traversals": {
+        "inorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "preorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "postorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}"
+      }
+    },
+    "timestamp": 1777886144783
+  },
+  {
+    "id": 16,
+    "input": {
+      "expression": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+      "mode": "precedence",
+      "tokenCount": 1,
+      "tokens": [
+        {
+          "type": "PREP",
+          "value": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+          "pos": 0
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 5,
+      "tree": {
+        "label": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "kind": "op",
+        "prec": null,
+        "children": []
+      },
+      "traversals": {
+        "inorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "preorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}",
+        "postorder": "#include <stdio.h>\\nint main() {\\n  printf(\"Hello!\");\\n  return 0;\\n}"
+      }
+    },
+    "timestamp": 1777886146543
+  },
+  {
+    "id": 17,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777886302881
+  },
+  {
+    "id": 18,
+    "input": {
+      "expression": "a + b * c",
+      "mode": "precedence",
+      "tokenCount": 5,
+      "tokens": [
+        {
+          "type": "IDENT",
+          "value": "a",
+          "pos": 0
+        },
+        {
+          "type": "OP",
+          "value": "+",
+          "pos": 2
+        },
+        {
+          "type": "IDENT",
+          "value": "b",
+          "pos": 4
+        },
+        {
+          "type": "OP",
+          "value": "*",
+          "pos": 6
+        },
+        {
+          "type": "IDENT",
+          "value": "c",
+          "pos": 8
+        }
+      ]
+    },
+    "output": {
+      "stepCount": 12,
+      "tree": {
+        "label": "+",
+        "kind": "op",
+        "prec": "low (1)",
+        "children": [
+          {
+            "label": "a",
+            "kind": "var",
+            "prec": null,
+            "children": []
+          },
+          {
+            "label": "*",
+            "kind": "op",
+            "prec": "high (2)",
+            "children": [
+              {
+                "label": "b",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              },
+              {
+                "label": "c",
+                "kind": "var",
+                "prec": null,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "traversals": {
+        "inorder": "a → + → b → * → c",
+        "preorder": "+ → a → * → b → c",
+        "postorder": "a → b → c → * → +"
+      }
+    },
+    "timestamp": 1777886304261
+  }
+]

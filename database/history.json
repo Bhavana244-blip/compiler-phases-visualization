@@ -1,0 +1,134 @@
+[
+  {
+    "id": 1,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777908112165
+  },
+  {
+    "id": 2,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777908118363
+  },
+  {
+    "id": 3,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777908196122
+  },
+  {
+    "id": 4,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    return 0;\n}"
+    },
+    "output": {
+      "tokenCount": 10
+    },
+    "timestamp": 1777908219127
+  },
+  {
+    "id": 5,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777908242638
+  },
+  {
+    "id": 6,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777910197735
+  },
+  {
+    "id": 7,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777912761124
+  },
+  {
+    "id": 8,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777912767680
+  },
+  {
+    "id": 9,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            "
+    },
+    "output": {
+      "tokenCount": 66
+    },
+    "timestamp": 1777912812893
+  },
+  {
+    "id": 10,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777913279503
+  },
+  {
+    "id": 11,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n         \n}"
+    },
+    "output": {
+      "tokenCount": 44
+    },
+    "timestamp": 1777913287065
+  },
+  {
+    "id": 12,
+    "type": "compile",
+    "input": {
+      "expression": "int main() {\n    int i, j, n = 5;\n    for(i = 1; i <= n; i++) {\n        for(j = 1; j <= n; j++) {\n            if(i == 1 || i == n || j == 1 || j == n)\n                printf(\"* \");\n            else\n  "
+    },
+    "output": {
+      "tokenCount": 83
+    },
+    "timestamp": 1777913337928
+  }
+]
