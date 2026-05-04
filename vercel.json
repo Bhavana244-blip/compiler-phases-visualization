@@ -1,5 +1,19 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.css",
+      "use": "@vercel/static"
+    }
+  ],
   "rewrites": [
     { "source": "/compile", "destination": "/server.js" },
     { "source": "/tokenize", "destination": "/server.js" },
