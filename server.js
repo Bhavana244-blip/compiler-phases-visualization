@@ -7,11 +7,19 @@ const app  = express();
 const PORT = 3000;
 
 // ── Database setup (flat-file JSON) ──────────────────────────────────
-const DB_DIR  = path.join(__dirname, 'database');
-const DB_FILE = path.join(DB_DIR, 'history.json');
+let DB_DIR  = path.join(__dirname, 'database');
+let DB_FILE = path.join(DB_DIR, 'history.json');
 
-if (!fs.existsSync(DB_DIR))  fs.mkdirSync(DB_DIR, { recursive: true });
-if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]', 'utf-8');
+try {
+  if (!fs.existsSync(DB_DIR))  fs.mkdirSync(DB_DIR, { recursive: true });
+  if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]', 'utf-8');
+} catch (e) {
+  // If we can't write to __dirname (e.g., Vercel read-only filesystem), fallback to /tmp
+  DB_DIR = path.join('/tmp', 'database');
+  DB_FILE = path.join(DB_DIR, 'history.json');
+  if (!fs.existsSync(DB_DIR))  fs.mkdirSync(DB_DIR, { recursive: true });
+  if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]', 'utf-8');
+}
 
 // ── Middleware ────────────────────────────────────────────────────────
 app.use(cors());
@@ -29,7 +37,11 @@ function readDB() {
 }
 
 function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.error("Failed to write to DB:", e);
+  }
 }
 
 function nextId(entries) {
@@ -168,3 +180,6 @@ app.listen(PORT, () => {
   console.log(`    → http://localhost:${PORT}/compiler-viz.html  (Syntax Analyzer)`);
   console.log(`    → http://localhost:${PORT}/database-viewer.html (Database)\n`);
 });
+
+// Export the app for Vercel Serverless Functions
+module.exports = app;

@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/compile", "destination": "/server.js" },
+    { "source": "/tokenize", "destination": "/server.js" },
+    { "source": "/parse", "destination": "/server.js" },
+    { "source": "/steps", "destination": "/server.js" },
+    { "source": "/api/(.*)", "destination": "/server.js" },
+    { "source": "/health", "destination": "/server.js" }
+  ]
+}
